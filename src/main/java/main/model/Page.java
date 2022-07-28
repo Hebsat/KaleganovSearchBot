@@ -1,6 +1,7 @@
 package main.model;
 
 import javax.persistence.*;
+import javax.persistence.Index;
 
 @Entity
 @Table(name = "pages", indexes = @Index(name = "path_index", columnList = "path"))
@@ -18,7 +19,7 @@ public class Page {
     private int code;
 
     @Column(nullable = false, columnDefinition = "mediumtext")
-    private String content;
+    private String content = "";
 
     public int getId() {
         return id;
@@ -50,5 +51,14 @@ public class Page {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return "Page{" +
+                "id=" + id +
+                ", path='" + path + '\'' +
+                ", code=" + code +
+                '}';
     }
 }

@@ -1,30 +1,36 @@
 package main;
 
-import main.model.PageRepository;
+import main.indexingPages.FoundLinks;
+import main.indexingPages.LinksParser;
+import main.model.Field;
+import main.properties.SearchBotProperties;
+import main.repository.Repositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 @Component
 public class Launcher implements CommandLineRunner {
 
     @Autowired
-    private PageRepository pageRepository;
+    private Repositories repositories;
+
+    @Autowired
+    private SearchBotProperties searchBotProperties;
 
     @Override
     public void run(String... args) throws Exception {
+        long start = System.currentTimeMillis();
+        List<Field> fields = new ArrayList<>((Collection<Field>) repositories.getFieldRepository().findAll());
 
-        String url1 = "http://www.playback.ru/";
-        String url2 = "https://volochek.life/";
-        String url3 = "http://radiomv.ru/";
-        String url4 = "https://ipfran.ru/";
-        String url5 = "https://dimonvideo.ru/";
-
-        new ForkJoinPool().invoke(new LinksParser(url1, pageRepository));
+        new ForkJoinPool(Runtime.getRuntime().availableProcessors() / searchBotProperties.getThreadNumber())
+                .invoke(new LinksParser(searchBotProperties.getLink(), repositories, fields));
         System.out.println("---------------------------------------------------------------------------------------");
         System.out.println("Всего ссылок найдено: " + FoundLinks.getFoundLinks().size());
-        System.out.println("Ссылок в БД         : " + pageRepository.count());
+        System.out.println("Ссылок в БД         : " + repositories.getPageRepository().count());
+        System.out.println("Затрачено времени: " + (System.currentTimeMillis() - start) + " ms");
     }
 }

@@ -1,4 +1,4 @@
-package main;
+package main.indexingPages;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -6,11 +6,7 @@ import java.util.Set;
 
 public class FoundLinks {
 
-    private static Set<String> foundLinks = Collections.synchronizedSet(new HashSet<>());
-
-    public static void setFoundLinks(Set<String> foundLinks) {
-        FoundLinks.foundLinks = foundLinks;
-    }
+    private static final Set<String> foundLinks = Collections.synchronizedSet(new HashSet<>());
 
     public static Set<String> getFoundLinks() {
         return foundLinks;
