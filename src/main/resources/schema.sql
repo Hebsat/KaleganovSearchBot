@@ -2,9 +2,11 @@ DROP TABLE IF EXISTS pages;
 DROP TABLE IF EXISTS fields;
 DROP TABLE IF EXISTS lemmas;
 DROP TABLE IF EXISTS indexes;
+DROP TABLE IF EXISTS sites;
 
 CREATE TABLE  pages(
 id INT AUTO_INCREMENT PRIMARY KEY,
+site_id INT NOT NULL,
 path TEXT NOT NULL,
 code INT NOT NULL,
 content  MEDIUMTEXT NOT NULL,
@@ -20,8 +22,10 @@ CREATE TABLE fields(
 
 CREATE TABLE lemmas(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    lemma VARCHAR(255) NOT NULL UNIQUE KEY,
-    frequency INT NOT NULL
+    site_id INT NOT NULL,
+    lemma VARCHAR(255) NOT NULL,
+    frequency INT NOT NULL,
+    UNIQUE KEY (site_id, lemma)
 );
 
 CREATE TABLE indexes (
@@ -29,4 +33,13 @@ CREATE TABLE indexes (
     page_id INT NOT NULL,
     lemma_id INT NOT NULL,
     `rank` FLOAT NOT NULL
+);
+
+CREATE TABLE sites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    status ENUM ('INDEXING', 'INDEXED', 'FAILED') NOT NULL,
+    status_time DATETIME NOT NULL,
+    last_error TEXT,
+    url VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL
 );

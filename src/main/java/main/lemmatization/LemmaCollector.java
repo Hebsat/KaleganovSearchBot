@@ -1,4 +1,4 @@
-package main.indexingPages;
+package main.lemmatization;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -7,7 +7,7 @@ import java.util.concurrent.FutureTask;
 
 public class LemmaCollector {
 
-    private Map<String, Integer> lemmasMap = new HashMap<>();
+    private final Map<String, Integer> lemmasMap = new HashMap<>();
 
     ExecutorService service = Executors.newFixedThreadPool(2);
     List<FutureTask<List<String>>> tasks = new ArrayList<>();
@@ -46,11 +46,11 @@ public class LemmaCollector {
         return Arrays.stream(text.split("\\s+")).toList();
     }
 
-    private String wordFormatterToLowerCase(String word) {
+    public String wordFormatterToLowerCase(String word) {
         return word.replaceAll("[.,!?'\"]+", "").toLowerCase();
     }
 
-    private boolean wordValidator(String word) {
+    public boolean wordValidator(String word) {
         return word.matches("[а-яё]+");
     }
 

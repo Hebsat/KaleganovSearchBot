@@ -15,4 +15,8 @@ public class FoundLinks {
     public static void addFoundLink(String foundLink) {
         foundLinks.add(foundLink);
     }
+
+    public static void clearFoundLinks() {
+        foundLinks.clear();
+    }
 }

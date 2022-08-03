@@ -18,6 +18,9 @@ public class Repositories {
     @Autowired
     private LemmaRepository lemmaRepository;
 
+    @Autowired
+    private SiteRepository siteRepository;
+
     public PageRepository getPageRepository() {
         return pageRepository;
     }
@@ -48,5 +51,13 @@ public class Repositories {
 
     public void setLemmaRepository(LemmaRepository lemmaRepository) {
         this.lemmaRepository = lemmaRepository;
+    }
+
+    public SiteRepository getSiteRepository() {
+        return siteRepository;
+    }
+
+    public void setSiteRepository(SiteRepository siteRepository) {
+        this.siteRepository = siteRepository;
     }
 }

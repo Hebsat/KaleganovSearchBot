@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "lemmas")
+@Table(name = "lemmas", indexes = @javax.persistence.Index(name = "lemma_site_index", columnList = "lemma, site_id", unique = true))
 public class Lemma {
 
     @Id
@@ -17,6 +17,10 @@ public class Lemma {
 
     @Column(nullable = false)
     private int frequency;
+
+    @JoinColumn(name = "site_id", updatable = false, nullable = false)
+    @ManyToOne (cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, optional = false)
+    private Site site;
 
     @OneToMany (fetch = FetchType.EAGER, mappedBy = "lemma", orphanRemoval = true)
     List<Index> indexes;
@@ -45,8 +49,12 @@ public class Lemma {
         this.frequency = frequency;
     }
 
-    public void addLemma() {
+    public Site getSite() {
+        return site;
+    }
 
+    public void setSite(Site site) {
+        this.site = site;
     }
 
     public List<Index> getIndexes() {
@@ -55,5 +63,15 @@ public class Lemma {
 
     public void setIndexes(List<Index> indexes) {
         this.indexes = indexes;
+    }
+
+    @Override
+    public String toString() {
+        return "Lemma{" +
+                "id=" + id +
+                " ".repeat(7 - String.valueOf(id).length()) + "lemma='" + lemma + '\'' +
+                " ".repeat(20 - lemma.length()) + "frequency=" + frequency +
+//                ", indexes=" + indexes +
+                '}';
     }
 }

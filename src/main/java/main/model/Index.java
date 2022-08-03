@@ -26,7 +26,7 @@ public class Index {
     public String toString() {
         return "Index{" +
                 "id=" + id +
-                ", page=" + page +
+                " ".repeat(7 - String.valueOf(id).length()) + "page=" + page +
                 ", lemma=" + lemma +
                 ", rank=" + rank +
                 '}';

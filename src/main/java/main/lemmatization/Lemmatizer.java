@@ -1,8 +1,9 @@
-package main.indexingPages;
+package main.lemmatization;
 
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +18,7 @@ public class Lemmatizer implements Callable<List<String>> {
     }
 
     @Override
-    public List<String> call() throws Exception {
+    public List<String> call() throws IOException {
         LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
         return luceneMorphology.getMorphInfo(word).stream()
                 .map(this::partsOfSpeechFilter)

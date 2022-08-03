@@ -21,6 +21,13 @@ public class Page {
     @Column(nullable = false, columnDefinition = "mediumtext")
     private String content = "";
 
+    @JoinColumn(name = "site_id", updatable = false, nullable = false)
+    @ManyToOne (cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, optional = false)
+    private Site site;
+
+    @Transient
+    private float relevance;
+
     public int getId() {
         return id;
     }
@@ -53,12 +60,28 @@ public class Page {
         this.content = content;
     }
 
+    public Site getSite() {
+        return site;
+    }
+
+    public void setSite(Site site) {
+        this.site = site;
+    }
+
+    public float getRelevance() {
+        return relevance;
+    }
+
+    public void setRelevance(float relevance) {
+        this.relevance = relevance;
+    }
+
     @Override
     public String toString() {
         return "Page{" +
                 "id=" + id +
-                ", path='" + path + '\'' +
-                ", code=" + code +
+                " ".repeat(6 - String.valueOf(id).length()) + "path='" + (path.length() > 28 ? path.substring(0, 28) : path) + '\'' +
+                " ".repeat(30 - (path.length() > 28 ? path.substring(0, 28).length() : path.length())) + "code=" + code +
                 '}';
     }
 }

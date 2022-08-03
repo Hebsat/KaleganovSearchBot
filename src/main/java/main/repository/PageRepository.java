@@ -11,4 +11,7 @@ public interface PageRepository extends CrudRepository<Page, Integer> {
 
     @Query(value = "SELECT p FROM Page p WHERE p.path = :path")
     Page findByPath(@Param("path") String path);
+
+    @Query(value = "SELECT COUNT(*) FROM pages WHERE site_id = :id", nativeQuery = true)
+    long findCountBySiteId(@Param("id") int id);
 }
