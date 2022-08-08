@@ -14,11 +14,13 @@ searchbot.pathToWebInterface: /admin
 searchbot.links:
   - url: http://www.playback.ru/
     name: Playback
-  - url: https://volochek.life/
-    name: Volochek
+#  - url: https://volochek.life/
+#    name: Volochek
   - url: http://radiomv.ru/
     name: Радио Милицейская Волна
-  - url: https://ipfran.ru/
-    name: Ipfran
-  - url: https://dimonvideo.ru/
-    name: Dimonvideo
+#  - url: https://ipfran.ru/
+#    name: Ipfran
+#  - url: https://dimonvideo.ru/
+#    name: Dimonvideo
+  - url: https://www.lutherancathedral.ru
+    name: Собор святых Петра и Павла

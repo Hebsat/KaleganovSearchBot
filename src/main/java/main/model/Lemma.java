@@ -19,10 +19,10 @@ public class Lemma {
     private int frequency;
 
     @JoinColumn(name = "site_id", updatable = false, nullable = false)
-    @ManyToOne (cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, optional = false)
+    @ManyToOne (cascade = CascadeType.ALL)
     private Site site;
 
-    @OneToMany (fetch = FetchType.EAGER, mappedBy = "lemma", orphanRemoval = true)
+    @OneToMany (cascade = CascadeType.ALL, mappedBy = "lemma")
     List<Index> indexes;
 
     public int getId() {

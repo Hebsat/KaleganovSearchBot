@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
 
-    @Query(value = "SELECT * FROM lemmas WHERE lemma = :lemma AND site_id = :siteId", nativeQuery = true)
+    @Query(value = "SELECT l FROM Lemma l WHERE l.lemma = :lemma AND site_id = :siteId")
     Lemma findByLemma(@Param("lemma") String lemma, @Param("siteId") int siteId);
 
     @Modifying
@@ -26,4 +26,9 @@ public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
 
     @Query(value = "SELECT COUNT(*) FROM lemmas WHERE site_id = :id", nativeQuery = true)
     long findCountBySiteId(@Param("id") int id);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM Lemma l WHERE site_id = :siteId")
+    void deleteBySiteId(@Param("siteId") int siteId);
 }

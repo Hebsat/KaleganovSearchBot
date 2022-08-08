@@ -1,5 +1,6 @@
 package main.findingSystem;
 
+import main.indexingPages.ParseData;
 import main.lemmatization.LemmaCollector;
 import main.lemmatization.Lemmatizer;
 import main.model.Lemma;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 @Component
 public class RequestHandler {
@@ -25,13 +27,14 @@ public class RequestHandler {
 
     public List<ResponseObject> requestHandler(String request, Site site) {
         List<ResponseObject> result = new ArrayList<>();
+        ParseData.setSearching(true);
         new LemmaCollector().getLemmas(request).keySet().forEach(l -> requestLemmas.add(getLemma(l, site)));
+        ParseData.setSearching(false);
 //        requestLemmas.removeIf(Objects::isNull);
         if (requestLemmas.contains(null) | requestLemmas.isEmpty()) {
             return new ArrayList<>();
         }
         requestLemmas.sort(Comparator.comparing(Lemma::getFrequency));
-        requestLemmas.forEach(lemma -> lemma.getIndexes().forEach(System.out::println));
         pageListCreator(requestLemmas).forEach(page -> {
             try {
                 result.add(getResponceObject(page));
@@ -55,7 +58,7 @@ public class RequestHandler {
             page.setRelevance(i.getRank());
             pages.add(page);
         });
-        System.out.println(lemma.getLemma() + " - " + pages.size());
+        Logger.getLogger(RequestHandler.class.getName()).info(lemma.getLemma() + " - " + pages.size());
         return pages;
     }
 

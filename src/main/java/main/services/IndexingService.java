@@ -1,6 +1,6 @@
 package main.services;
 
-import main.indexingPages.FoundLinks;
+import main.indexingPages.ParseData;
 import main.indexingPages.RunnableParserTask;
 import main.model.Field;
 import main.model.Page;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,13 +42,13 @@ public class IndexingService {
             ParseProperties properties = new ParseProperties();
             properties.setUserAgent(searchBotProperties.getUserAgent());
             properties.setFields(new ArrayList<>((Collection<Field>) repositories.getFieldRepository().findAll()));
+            properties.setForkJoinThreads(Runtime.getRuntime().availableProcessors() / searchBotProperties.getThreadNumber());
             Page page = new Page();
             page.setSite(site);
             page.setPath(site.getUrl());
             properties.setPage(page);
 
-            int threads = Runtime.getRuntime().availableProcessors() / searchBotProperties.getThreadNumber();
-            service.submit(new RunnableParserTask(repositories, properties, threads));
+            service.submit(new RunnableParserTask(repositories, properties));
         }
         catch (Exception e) {
             repositories.getSiteRepository().failedIndexingSite(site.getId(), "Ошибка запуска индексации");
@@ -56,15 +57,26 @@ public class IndexingService {
     }
 
     public void startIndexingAll() {
+        prepareIndexing();
+        service = Executors.newFixedThreadPool(3);
+        for (SiteParams site : searchBotProperties.getLinks()) {
+            startIndexingSite(site);
+        }
+    }
+
+    public void startIndexingSingle(String url) {
+        prepareIndexing();
+        service = Executors.newSingleThreadExecutor();
+        startIndexingSite(getSiteParamsFromUrl(url));
+    }
+
+    private void prepareIndexing() {
+        ParseData.setInterrupted(false);
         if (service != null && !service.isShutdown()) {
             service.shutdown();
+
         }
-        service = Executors.newFixedThreadPool(2);
-        FoundLinks.clearFoundLinks();
-//        for (String url : searchBotProperties.getLinks()) {
-//            startIndexingSite(url);
-//        }
-        startIndexingSite(searchBotProperties.getLinks()[2]);
+        ParseData.clearFoundLinks();
     }
 
     public boolean isIndexing() {
@@ -74,19 +86,20 @@ public class IndexingService {
     }
 
     public void stopIndexing() {
-        repositories.getSiteRepository().stopIndexingSites("Индексация прервана");
-//        service.shutdownNow();
+        ParseData.setInterrupted(true);
+        Logger.getLogger(IndexingService.class.getName()).info("set interrupted " + ParseData.isInterrupted());
+//        System.out.println("set interrupted " + ParseData.isInterrupted());
     }
 
     public boolean indexPageValidation(String url) {
         SiteParams[] links = searchBotProperties.getLinks();
         return Arrays.stream(links)
-                .anyMatch(link -> getDomainNameFromLink(link.getUrl()).equals(getDomainNameFromLink(url)));
+                .anyMatch(link -> getDomainNameFromLink(link.getUrl()).equals(url));
     }
 
     public SiteParams getSiteParamsFromUrl(String url) {
         SiteParams[] links = searchBotProperties.getLinks();
-        return Arrays.stream(links).filter(l -> l.getUrl().equals(url)).findFirst().get();
+        return Arrays.stream(links).filter(l -> getDomainNameFromLink(l.getUrl()).equals(url)).findFirst().get();
     }
 
     private String getDomainNameFromLink(String link) {
@@ -107,14 +120,14 @@ public class IndexingService {
         List<Site> sites = new ArrayList<>();
         repositories.getSiteRepository().findAll().forEach(sites::add);
         sites.forEach(site -> detailedStatistics.add(new DetailedStatistics(
-                    site.getUrl(),
-                    site.getName(),
-                    site.getStatus(),
-                    site.getStatusTime().getTime(),
-                    site.getLastError() == null ? "Ошибки отсутствуют" : site.getLastError(),
-                    repositories.getPageRepository().findCountBySiteId(site.getId()),
-                    repositories.getLemmaRepository().findCountBySiteId(site.getId())
-            )));
+                site.getUrl(),
+                site.getName(),
+                site.getStatus(),
+                site.getStatusTime().getTime(),
+                site.getLastError() == null ? "Ошибки отсутствуют" : site.getLastError(),
+                repositories.getPageRepository().findCountBySiteId(site.getId()),
+                repositories.getLemmaRepository().findCountBySiteId(site.getId())
+        )));
         return new ResponseStatistics(
                 new TotalStatistics(
                         repositories.getSiteRepository().count(),
@@ -123,5 +136,27 @@ public class IndexingService {
                         isIndexing()),
                 detailedStatistics.toArray(new DetailedStatistics[0])
         );
+    }
+
+    public int getSitesCount() {
+        return (int) repositories.getSiteRepository().count();
+    }
+
+    public long getPagesCount() {
+        return repositories.getPageRepository().count();
+    }
+
+    public long getLemmasCount() {
+        return repositories.getLemmaRepository().count();
+    }
+
+    public List<Site> getAllSites() {
+        List<Site> sites = new ArrayList<>();
+        repositories.getSiteRepository().findAll().forEach(sites::add);
+        return sites;
+    }
+
+    public List<Site> getAllIndexedSites() {
+        return repositories.getSiteRepository().findByStatus(Status.INDEXED);
     }
 }

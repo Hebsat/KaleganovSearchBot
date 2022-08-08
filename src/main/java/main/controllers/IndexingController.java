@@ -5,21 +5,19 @@ import main.services.IndexingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/admin/")
 public class IndexingController {
 
     @Autowired
     private IndexingService indexingService;
 
-    @GetMapping("/api/startIndexing")
+    @GetMapping("/startIndexing")
     public ResponseEntity<?> startIndexing() {
         if (indexingService.isIndexing()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -31,7 +29,7 @@ public class IndexingController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/api/stopIndexing")
+    @GetMapping("/stopIndexing")
     public ResponseEntity<?> stopIndexing() {
         if (indexingService.isIndexing()) {
             indexingService.stopIndexing();
@@ -43,20 +41,24 @@ public class IndexingController {
                 .body(new ResponseErrorObject(false, "Индексация не запущена"));
     }
 
-    @PostMapping("/api/indexPage")
+    @PostMapping("/indexPage")
     public ResponseEntity<?> indexPage(@RequestParam String url) {
+        if (indexingService.isIndexing()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseErrorObject(false, "Индексация уже запущена"));
+        }
         if (indexingService.indexPageValidation(url)) {
-            indexingService.startIndexingSite(indexingService.getSiteParamsFromUrl(url));
+            indexingService.startIndexingSingle(url);
             Map<String, Boolean> result = new HashMap<>();
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ResponseErrorObject(false,
-                        "Данный сайт находится вне списка сайтов, указанных в конфигурационном файле"));
+                        "Данный сайт находится вне списка сайтов, указанных в конфигурационном файле: " + url));
     }
 
-    @GetMapping("/api/statistics")
+    @GetMapping("/statistics")
     public ResponseEntity<?> getStatistics() {
         return ResponseEntity.status(HttpStatus.OK).body(indexingService.getStatistics());
     }

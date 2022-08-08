@@ -10,6 +10,7 @@ public class ParseProperties {
     private String userAgent;
     private List<Field> fields;
     private Page page;
+    private int forkJoinThreads;
 
     public String getUserAgent() {
         return userAgent;
@@ -33,5 +34,13 @@ public class ParseProperties {
 
     public void setPage(Page page) {
         this.page = page;
+    }
+
+    public int getForkJoinThreads() {
+        return forkJoinThreads;
+    }
+
+    public void setForkJoinThreads(int forkJoinThreads) {
+        this.forkJoinThreads = forkJoinThreads;
     }
 }

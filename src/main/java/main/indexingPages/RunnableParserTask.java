@@ -5,34 +5,54 @@ import main.properties.ParseProperties;
 import main.repository.Repositories;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Logger;
 
 public class RunnableParserTask implements Runnable{
 
     private final Repositories repositories;
     private final ParseProperties properties;
-    private final int threads;
 
-    public RunnableParserTask(Repositories repositories, ParseProperties properties, int threads) {
+    public RunnableParserTask(Repositories repositories, ParseProperties properties) {
         this.repositories = repositories;
         this.properties = properties;
-        this.threads = threads;
     }
 
     @Override
     public void run() {
-        System.out.println("start " + properties.getPage().getSite().getId());
-        new ForkJoinPool(threads)
+        Logger.getLogger(RunnableParserTask.class.getName())
+                .info("start " + properties.getPage().getSite().getId() + " - " + properties.getPage().getPath());
+        new ForkJoinPool(properties.getForkJoinThreads())
                 .invoke(new LinksParser(repositories, properties));
-        System.out.println("finish " + properties.getPage().getSite().getId());
+        Logger.getLogger(RunnableParserTask.class.getName())
+                .info("finishing " + properties.getPage().getSite().getId() + " - " + properties.getPage().getPath());
         Site indexedSite = repositories.getSiteRepository().findIndexedSiteByUrl(properties.getPage().getSite().getUrl());
-        if (indexedSite != null) {
-            repositories.getSiteRepository().delete(indexedSite);
+        if (indexedSite != null && !ParseData.isInterrupted()) {
+            deleteData(indexedSite);
         }
         Site failedSite = repositories.getSiteRepository().findFailedSiteByUrl(properties.getPage().getSite().getUrl());
         if (failedSite != null) {
-            repositories.getSiteRepository().delete(failedSite);
+            deleteData(failedSite);
         }
+        if (ParseData.isInterrupted()) {
+            setFailed();
+        } else {
+            setIndexed();
+        }
+        Logger.getLogger(RunnableParserTask.class.getName())
+                .info("finished " + properties.getPage().getSite().getId() + " - " + properties.getPage().getPath());
+    }
+
+    private void deleteData(Site site) {
+        repositories.getPageRepository().deleteBySiteId(site.getId());
+        repositories.getLemmaRepository().deleteBySiteId(site.getId());
+        repositories.getSiteRepository().delete(site);
+    }
+
+    private void setIndexed() {
         repositories.getSiteRepository().finishIndexingSite(properties.getPage().getSite().getId());
-        System.out.println("finished " + properties.getPage().getSite().getId());
+    }
+
+    private void setFailed() {
+        repositories.getSiteRepository().stopIndexingSites(properties.getPage().getSite().getId(), "Индексация прервана");
     }
 }

@@ -13,11 +13,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
 public class LinksParser extends RecursiveAction {
 
@@ -38,14 +38,19 @@ public class LinksParser extends RecursiveAction {
 
     @Override
     protected void compute() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (ParseData.isInterrupted()) {
+            Thread.currentThread().interrupt();
+            return;
         }
-        System.out.println("ссылок найдено: " + FoundLinks.getFoundLinks().size() + " / поток №: " + Thread.currentThread().getId() + " / просмотр: " + page.getPath() + " = " + page.getSite().getId());
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            Logger.getLogger(LinksParser.class.getName()).info("Прерван анализ страницы " + page.getPath());
+        }
+        Logger.getLogger(LinksParser.class.getName())
+                .info("ссылок найдено: " + ParseData.getFoundLinks().size() + " / поток №: " + Thread.currentThread().getId() + " / просмотр: " + page.getPath() + " = " + page.getSite().getId());
         List<LinksParser> taskList = new ArrayList<>();
-        FoundLinks.addFoundLink(page.getPath());
+        ParseData.addFoundLink(page.getPath());
         try {
             List<String> currentLinks = jsoupLinksParser();
             currentLinks.forEach(link -> {
@@ -64,7 +69,7 @@ public class LinksParser extends RecursiveAction {
         }
     }
 
-    public List<String> jsoupLinksParser() throws IOException {
+    private List<String> jsoupLinksParser() throws IOException {
         List<String> links = new ArrayList<>();
         try {
             Connection.Response response = Jsoup.connect(page.getPath()).userAgent(properties.getUserAgent()).referrer("http://www.google.com").execute();
@@ -77,13 +82,17 @@ public class LinksParser extends RecursiveAction {
             elements.stream()
                     .map(element -> urlFormatter(element.attr("href")))
                     .filter(link -> link.startsWith(domainName))
-                    .filter(link -> !FoundLinks.getFoundLinks().contains(link))
+                    .filter(link -> !ParseData.getFoundLinks().contains(link))
                     .filter(this::linkValidation)
                     .peek(links::add)
-                    .forEach(FoundLinks::addFoundLink);
+                    .forEach(ParseData::addFoundLink);
         }
         catch (HttpStatusException e) {
             page.setCode(e.getStatusCode());
+            e.printStackTrace();
+        }
+        catch (ConnectException e) {
+            page.setCode(500);
             e.printStackTrace();
         }
         return links;
@@ -105,7 +114,7 @@ public class LinksParser extends RecursiveAction {
     }
 
     private boolean linkValidation(String link) {
-        return !link.matches("(" + domainName + "/\\S+\\.(?!html)\\w{2,5}$)|(\\S+#\\S+)");
+        return !link.matches("(\\S+\\.(?!html)\\w{2,5}(/?\\?\\S+)?$)|(\\S+#\\S+)");
     }
 
     private void getLemmasFromString(Document text) {
@@ -123,13 +132,17 @@ public class LinksParser extends RecursiveAction {
         repositories.getPageRepository().save(page);
         repositories.getSiteRepository().updateIndexingDate(page.getSite().getId());
         lemmasRank.keySet().forEach(l ->repositories.getLemmaRepository().addLemma(l, page.getSite().getId()));
+        List<Index> indexList = new ArrayList<>();
         lemmasRank.forEach((l, r) -> {
             Index index = new Index();
-            index.setPage(repositories.getPageRepository().findByPath(page.getPath()));
+            index.setPage(repositories.getPageRepository().findByPath(page.getPath(), page.getSite().getId()));
             index.setLemma(repositories.getLemmaRepository().findByLemma(l, page.getSite().getId()));
             index.setRank(r);
-            repositories.getIndexRepository().save(index);
+            indexList.add(index);
         });
+        repositories.getIndexRepository().saveAll(indexList);
+//        List<String> lemmas = new ArrayList<>(lemmasRank.keySet());
+//        repositories.getLemmaRepository().addAllLemmas(lemmas, page.getSite().getId());
 //        StringBuilder query = new StringBuilder();
 //        lemmasRank.forEach((l, r) -> query.append(query.length() == 0 ? "" : "), ('").append(l).append("', '1'"));
 //        System.out.println(query);

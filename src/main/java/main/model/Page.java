@@ -2,6 +2,7 @@ package main.model;
 
 import javax.persistence.*;
 import javax.persistence.Index;
+import java.util.List;
 
 @Entity
 @Table(name = "pages", indexes = @Index(name = "path_index", columnList = "path"))
@@ -24,6 +25,12 @@ public class Page {
     @JoinColumn(name = "site_id", updatable = false, nullable = false)
     @ManyToOne (cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, optional = false)
     private Site site;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "indexes",
+            joinColumns = {@JoinColumn (name = "page_id")},
+            inverseJoinColumns = {@JoinColumn (name = "lemma_id")})
+    private List<Lemma> lemmaList;
 
     @Transient
     private float relevance;
