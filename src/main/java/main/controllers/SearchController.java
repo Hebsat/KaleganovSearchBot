@@ -6,7 +6,6 @@ import main.services.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,8 +43,8 @@ public class SearchController {
                     .body(new ResponseErrorObject(false, "Указанный сайт не проиндексирован"));
         }
         Logger.getLogger(SearchController.class.getName())
-                .info("Запрос: " + query + " / на сайте " + currentSite.getUrl());
-//        System.out.println(currentSite.getId() + " - " + currentSite.getStatus() + " - " + currentSite.getUrl());
-        return ResponseEntity.status(HttpStatus.OK).body(searchService.search(query, currentSite));
+                .info("Запрос: " + query + " / на сайте " + currentSite.getUrl() +
+                        " offset: " + offset + " limit: " + limit);
+        return ResponseEntity.status(HttpStatus.OK).body(searchService.search(query, currentSite, offset, limit));
     }
 }

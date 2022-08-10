@@ -23,10 +23,10 @@ public class Page {
     private String content = "";
 
     @JoinColumn(name = "site_id", updatable = false, nullable = false)
-    @ManyToOne (cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, optional = false)
+    @ManyToOne ()
     private Site site;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany()
     @JoinTable(name = "indexes",
             joinColumns = {@JoinColumn (name = "page_id")},
             inverseJoinColumns = {@JoinColumn (name = "lemma_id")})
@@ -34,6 +34,18 @@ public class Page {
 
     @Transient
     private float relevance;
+
+    public Page() {
+    }
+
+    public Page(int id, String path, int code, String content, Site site, float relevance) {
+        this.id = id;
+        this.path = path;
+        this.code = code;
+        this.content = content;
+        this.site = site;
+        this.relevance = relevance;
+    }
 
     public int getId() {
         return id;
@@ -83,12 +95,21 @@ public class Page {
         this.relevance = relevance;
     }
 
+    public List<Lemma> getLemmaList() {
+        return lemmaList;
+    }
+
+    public void setLemmaList(List<Lemma> lemmaList) {
+        this.lemmaList = lemmaList;
+    }
+
     @Override
     public String toString() {
         return "Page{" +
                 "id=" + id +
                 " ".repeat(6 - String.valueOf(id).length()) + "path='" + (path.length() > 28 ? path.substring(0, 28) : path) + '\'' +
                 " ".repeat(30 - (path.length() > 28 ? path.substring(0, 28).length() : path.length())) + "code=" + code +
+                " relevance: " + getRelevance() +
                 '}';
     }
 }

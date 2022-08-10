@@ -54,8 +54,13 @@ public class RequestHandler {
     private List<Page> getPages(Lemma lemma) {
         List<Page> pages = new ArrayList<>();
         lemma.getIndexes().forEach(i -> {
-            Page page = i.getPage();
-            page.setRelevance(i.getRank());
+            Page page = new Page(
+                    i.getPage().getId(),
+                    i.getPage().getPath(),
+                    i.getPage().getCode(),
+                    i.getPage().getContent(),
+                    i.getPage().getSite(),
+                    i.getRank());
             pages.add(page);
         });
         Logger.getLogger(RequestHandler.class.getName()).info(lemma.getLemma() + " - " + pages.size());

@@ -23,12 +23,13 @@ public class SearchService {
     @Autowired
     private SearchBotProperties searchBotProperties;
 
-    public ResponseSearchObject search(String query, Site site) {
+    public ResponseSearchObject search(String query, Site site, int offset, int limit) {
         RequestHandler requestHandler = new RequestHandler(repositories);
         List<ResponseObject> foundPages = requestHandler.requestHandler(query, site);
+        List<ResponseObject> resultFoundPages = getPagesInRange(foundPages, offset, limit);
         List<SearchData> searchDataList = new ArrayList<>();
-        foundPages.forEach(w -> Logger.getLogger(SearchService.class.getName()).info(site.getUrl() + w.getUri()));
-        foundPages.forEach(responseObject -> searchDataList.add(new SearchData(
+        resultFoundPages.forEach(w -> Logger.getLogger(SearchService.class.getName()).info(site.getUrl() + w.getUri()));
+        resultFoundPages.forEach(responseObject -> searchDataList.add(new SearchData(
                     site.getUrl(),
                     site.getName(),
                     responseObject.getUri(),
@@ -44,5 +45,19 @@ public class SearchService {
 
     public boolean queryValidation(String query) {
         return query.matches("[а-яА-ЯёЁ\\s]+");
+    }
+
+    private List<ResponseObject> getPagesInRange(List<ResponseObject> list, int offset, int limit) {
+        List<ResponseObject> result = new ArrayList<>();
+        if (list.size() < offset) {
+            return new ArrayList<>();
+        }
+        for (int i = offset; i < list.size(); i++) {
+            if (i == offset + limit) {
+                break;
+            }
+            result.add(list.get(i));
+        }
+        return result;
     }
 }

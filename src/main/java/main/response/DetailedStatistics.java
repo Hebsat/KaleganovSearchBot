@@ -7,7 +7,7 @@ public class DetailedStatistics {
     private String url;
     private String name;
     private Status status;
-    private long StatusTime;
+    private long statusTime;
     private String error;
     private long pages;
     private long lemmas;
@@ -16,7 +16,7 @@ public class DetailedStatistics {
         this.url = url;
         this.name = name;
         this.status = status;
-        StatusTime = statusTime;
+        this.statusTime = statusTime;
         this.error = error;
         this.pages = pages;
         this.lemmas = lemmas;
@@ -47,11 +47,11 @@ public class DetailedStatistics {
     }
 
     public long getStatusTime() {
-        return StatusTime;
+        return statusTime;
     }
 
     public void setStatusTime(long statusTime) {
-        StatusTime = statusTime;
+        this.statusTime = statusTime;
     }
 
     public String getError() {

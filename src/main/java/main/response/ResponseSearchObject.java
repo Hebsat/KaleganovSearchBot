@@ -4,12 +4,12 @@ public class ResponseSearchObject {
 
     private boolean result;
     private int count;
-    private SearchData[] searchData;
+    private SearchData[] data;
 
     public ResponseSearchObject(boolean result, int count, SearchData[] searchData) {
         this.result = result;
         this.count = count;
-        this.searchData = searchData;
+        this.data = searchData;
     }
 
     public boolean isResult() {
@@ -28,11 +28,11 @@ public class ResponseSearchObject {
         this.count = count;
     }
 
-    public SearchData[] getSearchData() {
-        return searchData;
+    public SearchData[] getData() {
+        return data;
     }
 
-    public void setSearchData(SearchData[] searchData) {
-        this.searchData = searchData;
+    public void setData(SearchData[] data) {
+        this.data = data;
     }
 }

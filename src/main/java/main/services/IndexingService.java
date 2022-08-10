@@ -1,5 +1,6 @@
 package main.services;
 
+import main.indexingPages.LinksParser;
 import main.indexingPages.ParseData;
 import main.indexingPages.RunnableParserTask;
 import main.model.Field;
@@ -16,6 +17,7 @@ import main.response.TotalStatistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
@@ -56,6 +58,21 @@ public class IndexingService {
         }
     }
 
+    public void startIndexingSinglePage(String url) throws IOException {
+        Logger.getLogger(IndexingService.class.getName()).info("Индексация отдельной страницы: " + url);
+        String domainName = getDomainNameFromLink(url);
+        Site site = repositories.getSiteRepository().findIndexedSiteByUrl(domainName);
+        ParseProperties properties = new ParseProperties();
+        properties.setUserAgent(searchBotProperties.getUserAgent());
+        properties.setFields(new ArrayList<>((Collection<Field>) repositories.getFieldRepository().findAll()));
+        Page page = new Page();
+        page.setSite(site);
+        page.setPath(url);
+        properties.setPage(page);
+        new LinksParser(repositories, properties).parsePage();
+        Logger.getLogger(IndexingService.class.getName()).info("Индексация " + url + " завершена");
+    }
+
     public void startIndexingAll() {
         prepareIndexing();
         service = Executors.newFixedThreadPool(3);
@@ -64,7 +81,7 @@ public class IndexingService {
         }
     }
 
-    public void startIndexingSingle(String url) {
+    public void startIndexingSingleSite(String url) {
         prepareIndexing();
         service = Executors.newSingleThreadExecutor();
         startIndexingSite(getSiteParamsFromUrl(url));
@@ -88,13 +105,18 @@ public class IndexingService {
     public void stopIndexing() {
         ParseData.setInterrupted(true);
         Logger.getLogger(IndexingService.class.getName()).info("set interrupted " + ParseData.isInterrupted());
-//        System.out.println("set interrupted " + ParseData.isInterrupted());
+    }
+
+    public boolean indexSiteValidation(String url) {
+        SiteParams[] links = searchBotProperties.getLinks();
+        return Arrays.stream(links)
+                .anyMatch(link -> getDomainNameFromLink(link.getUrl()).equals(url));
     }
 
     public boolean indexPageValidation(String url) {
         SiteParams[] links = searchBotProperties.getLinks();
         return Arrays.stream(links)
-                .anyMatch(link -> getDomainNameFromLink(link.getUrl()).equals(url));
+                .anyMatch(link -> getDomainNameFromLink(link.getUrl()).equals(getDomainNameFromLink(url)));
     }
 
     public SiteParams getSiteParamsFromUrl(String url) {

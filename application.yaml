@@ -8,19 +8,17 @@ spring.jpa.show-sql: false
 logging.level.root: info
 spring.output.ansi.enabled: ALWAYS
 
-searchbot.threadNumber: 2
+searchbot.threadNumber: 3
 searchbot.userAgent: KaleganovSearchBot-1.0
 searchbot.pathToWebInterface: /admin
 searchbot.links:
-  - url: http://www.playback.ru/
-    name: Playback
-#  - url: https://volochek.life/
-#    name: Volochek
+#  - url: http://www.playback.ru/
+#    name: Playback
+  - url: https://nikoartgallery.com
+    name: Галерея Исскуств Нико
   - url: http://radiomv.ru/
     name: Радио Милицейская Волна
-#  - url: https://ipfran.ru/
-#    name: Ipfran
-#  - url: https://dimonvideo.ru/
-#    name: Dimonvideo
+  - url: https://www.svetlovka.ru
+    name: Библиотека Светловка
   - url: https://www.lutherancathedral.ru
     name: Собор святых Петра и Павла

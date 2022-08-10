@@ -1,12 +1,15 @@
 package main.repository;
 
 import main.model.Lemma;
+import main.model.Page;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Repository
 public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
@@ -31,4 +34,9 @@ public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
     @Transactional
     @Query(value = "DELETE FROM Lemma l WHERE site_id = :siteId")
     void deleteBySiteId(@Param("siteId") int siteId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE Lemma l SET frequency = frequency - 1 WHERE l = :lemma")
+    void decreaseFrequency(@Param("lemma") Lemma lemma);
 }

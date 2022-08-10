@@ -2,28 +2,28 @@ package main.response;
 
 public class ResponseStatistics {
 
-    private TotalStatistics totalStatistics;
+    private TotalStatistics total;
 
-    private DetailedStatistics[] detailedStatistics;
+    private DetailedStatistics[] detailed;
 
     public ResponseStatistics(TotalStatistics totalStatistics, DetailedStatistics[] detailedStatistics) {
-        this.totalStatistics = totalStatistics;
-        this.detailedStatistics = detailedStatistics;
+        this.total = totalStatistics;
+        this.detailed = detailedStatistics;
     }
 
-    public TotalStatistics getTotalStatistics() {
-        return totalStatistics;
+    public TotalStatistics getTotal() {
+        return total;
     }
 
-    public void setTotalStatistics(TotalStatistics totalStatistics) {
-        this.totalStatistics = totalStatistics;
+    public void setTotal(TotalStatistics total) {
+        this.total = total;
     }
 
-    public DetailedStatistics[] getDetailedStatistics() {
-        return detailedStatistics;
+    public DetailedStatistics[] getDetailed() {
+        return detailed;
     }
 
-    public void setDetailedStatistics(DetailedStatistics[] detailedStatistics) {
-        this.detailedStatistics = detailedStatistics;
+    public void setDetailed(DetailedStatistics[] detailed) {
+        this.detailed = detailed;
     }
 }

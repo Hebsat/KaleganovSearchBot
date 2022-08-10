@@ -3,11 +3,8 @@ package main.findingSystem;
 public class ResponseObject {
 
     private String uri;
-
     private String title;
-
     private String snippet;
-
     private float relevance;
 
     public String getUri() {

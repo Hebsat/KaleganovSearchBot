@@ -20,7 +20,7 @@ public class RunnableParserTask implements Runnable{
     @Override
     public void run() {
         Logger.getLogger(RunnableParserTask.class.getName())
-                .info("start " + properties.getPage().getSite().getId() + " - " + properties.getPage().getPath());
+                .info("start " + properties.getPage().getSite().getId() + " - " + properties.getPage().getPath() + " in " + properties.getForkJoinThreads() + " threads");
         new ForkJoinPool(properties.getForkJoinThreads())
                 .invoke(new LinksParser(repositories, properties));
         Logger.getLogger(RunnableParserTask.class.getName())

@@ -27,6 +27,7 @@ public class LinksParser extends RecursiveAction {
     private final Page page;
     private final Map<String, Float> lemmasRank;
     private final ParseProperties properties;
+    List<String> currentLinks;
 
     public LinksParser(Repositories repositories, ParseProperties properties) {
         this.repositories = repositories;
@@ -34,6 +35,7 @@ public class LinksParser extends RecursiveAction {
         page = properties.getPage();
         domainName = properties.getPage().getSite().getUrl();
         lemmasRank = new HashMap<>();
+        currentLinks = new ArrayList<>();
     }
 
     @Override
@@ -52,7 +54,7 @@ public class LinksParser extends RecursiveAction {
         List<LinksParser> taskList = new ArrayList<>();
         ParseData.addFoundLink(page.getPath());
         try {
-            List<String> currentLinks = jsoupLinksParser();
+            parsePage();
             currentLinks.forEach(link -> {
                 Page newPage = new Page();
                 newPage.setSite(page.getSite());
@@ -62,11 +64,15 @@ public class LinksParser extends RecursiveAction {
                 task.fork();
                 taskList.add(task);
             });
-            insertDataToDB();
             taskList.forEach(ForkJoinTask::join);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void parsePage() throws IOException {
+        currentLinks = jsoupLinksParser();
+        insertDataToDB();
     }
 
     private List<String> jsoupLinksParser() throws IOException {
@@ -89,14 +95,15 @@ public class LinksParser extends RecursiveAction {
         }
         catch (HttpStatusException e) {
             page.setCode(e.getStatusCode());
-            e.printStackTrace();
+            Logger.getLogger(LinksParser.class.getName()).info(e.getLocalizedMessage());
         }
         catch (ConnectException e) {
             page.setCode(500);
-            e.printStackTrace();
+            Logger.getLogger(LinksParser.class.getName()).info(e.getLocalizedMessage());
         }
         return links;
     }
+
     private String urlFormatter(String url) {
         String correctUrl = url.isEmpty() ? "incorrect!" : url;
         try {
@@ -129,6 +136,7 @@ public class LinksParser extends RecursiveAction {
 
     private void insertDataToDB() {
         page.setPath(urlFormatterForDB(page.getPath()));
+        insertPreparing();
         repositories.getPageRepository().save(page);
         repositories.getSiteRepository().updateIndexingDate(page.getSite().getId());
         lemmasRank.keySet().forEach(l ->repositories.getLemmaRepository().addLemma(l, page.getSite().getId()));
@@ -147,5 +155,16 @@ public class LinksParser extends RecursiveAction {
 //        lemmasRank.forEach((l, r) -> query.append(query.length() == 0 ? "" : "), ('").append(l).append("', '1'"));
 //        System.out.println(query);
 //        repositories.getLemmaRepository().addAllLemmas(query.substring(0, query.length() - 1));
+    }
+
+    private void insertPreparing() {
+        Page existingPage = repositories.getPageRepository().findByPath(page.getPath(), page.getSite().getId());
+        if (existingPage != null) {
+            existingPage.getLemmaList().forEach(lemma -> {
+                repositories.getLemmaRepository().decreaseFrequency(lemma);
+            });
+            repositories.getPageRepository().deleteById(existingPage.getId());
+        }
+
     }
 }
