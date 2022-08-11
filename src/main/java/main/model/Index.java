@@ -22,6 +22,9 @@ public class Index {
     @Column(name = "`rank`", nullable = false)
     private float rank;
 
+    @Column(name = "indexes_in_text")
+    private String indexesInText;
+
     @Override
     public String toString() {
         return "Index{" +
@@ -62,5 +65,13 @@ public class Index {
 
     public void setRank(float rank) {
         this.rank = rank;
+    }
+
+    public String getIndexesInText() {
+        return indexesInText;
+    }
+
+    public void setIndexesInText(String indexesInText) {
+        this.indexesInText = indexesInText;
     }
 }

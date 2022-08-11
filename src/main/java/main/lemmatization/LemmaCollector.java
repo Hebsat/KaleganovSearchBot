@@ -7,18 +7,19 @@ import java.util.concurrent.FutureTask;
 
 public class LemmaCollector {
 
-    private final Map<String, Integer> lemmasMap = new HashMap<>();
+    private final Map<String, LemmaValues> lemmasMap = new HashMap<>();
 
     ExecutorService service = Executors.newFixedThreadPool(2);
-    List<FutureTask<List<String>>> tasks = new ArrayList<>();
+    List<FutureTask<Word>> tasks = new ArrayList<>();
+    private int textLength;
 
-    public Map<String, Integer> getLemmas(String text) {
-        List<String> words = new ArrayList<>();
+    public Map<String, LemmaValues> getLemmas(String text) {
+        List<Word> words = new ArrayList<>();
         getWordsFromText(text).stream()
                 .map(this::wordFormatterToLowerCase)
                 .filter(this::wordValidator)
                 .forEach(w -> {
-                    FutureTask<List<String>> futureTask = new FutureTask<>(new Lemmatizer(w));
+                    FutureTask<Word> futureTask = new FutureTask<>(new Lemmatizer(w));
                     tasks.add(futureTask);
 //                    try {
 //                        words.addAll(getLemmasFromWord(w));
@@ -29,29 +30,47 @@ public class LemmaCollector {
         tasks.forEach(t -> service.submit(t));
         tasks.forEach(t -> {
             try {
-                words.addAll(t.get());
+                words.add(t.get());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-        words.forEach(w -> {
-            int count = lemmasMap.getOrDefault(w, 0);
-            lemmasMap.put(w, count + 1);
-        });
+        words.forEach(w -> w.getLemmas()
+                .forEach(l -> {
+                    LemmaValues values = lemmasMap.getOrDefault(l, new LemmaValues(l, 0, new ArrayList<>(), textLength));
+                    List<Integer> wordNumbers = values.getWordNumbers();
+                    wordNumbers.add(w.getNumber());
+                    values.setCount(values.getCount() + 1);
+                    values.setWordNumbers(wordNumbers);
+                    lemmasMap.put(l, values);
+//            int count = lemmasMap.getOrDefault(w, 0);
+//            lemmasMap.put(w, count + 1);
+                }));
         service.shutdown();
         return lemmasMap;
     }
 
-    private List<String> getWordsFromText(String text) {
-        return Arrays.stream(text.split("\\s+")).toList();
+    private List<Word> getWordsFromText(String text) {
+        List<Word> wordsList = new ArrayList<>();
+        List<String> words = Arrays.stream(text.split("\\s+")).toList();
+        textLength = words.size();
+        for (int i = 0; i < words.size(); i++) {
+            Word word = new Word(words.get(i));
+            word.setNumber(i);
+            wordsList.add(word);
+        }
+        return wordsList;
+//        return Arrays.stream(text.split("\\s+")).toList();
     }
 
-    public String wordFormatterToLowerCase(String word) {
-        return word.replaceAll("[.,!?'\"]+", "").toLowerCase();
+    public Word wordFormatterToLowerCase(Word word) {
+        String content = word.getWord().replaceAll("[.,!?'\"]+", "").toLowerCase();
+        word.setWord(content);
+        return word;
     }
 
-    public boolean wordValidator(String word) {
-        return word.matches("[а-яё]+");
+    public boolean wordValidator(Word word) {
+        return word.getWord().matches("[а-яё]+");
     }
 
 //    private String partsOfSpeechFilter(String word) {

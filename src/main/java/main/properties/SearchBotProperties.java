@@ -6,11 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class SearchBotProperties {
 
     private SiteParams[] links;
-
     private String userAgent;
-
     private String pathToWebInterface;
-
     private int threadNumber;
 
     public SiteParams[] getLinks() {

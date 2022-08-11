@@ -2,7 +2,6 @@ package main.findingSystem;
 
 import main.indexingPages.ParseData;
 import main.lemmatization.LemmaCollector;
-import main.lemmatization.Lemmatizer;
 import main.model.Lemma;
 import main.model.Page;
 import main.model.Site;
@@ -54,17 +53,27 @@ public class RequestHandler {
     private List<Page> getPages(Lemma lemma) {
         List<Page> pages = new ArrayList<>();
         lemma.getIndexes().forEach(i -> {
+            Set<Integer> lemmasPositions = parsePositions(i.getIndexesInText());
             Page page = new Page(
                     i.getPage().getId(),
                     i.getPage().getPath(),
                     i.getPage().getCode(),
                     i.getPage().getContent(),
                     i.getPage().getSite(),
-                    i.getRank());
+                    i.getRank(),
+                    lemmasPositions);
             pages.add(page);
         });
         Logger.getLogger(RequestHandler.class.getName()).info(lemma.getLemma() + " - " + pages.size());
         return pages;
+    }
+
+    private Set<Integer> parsePositions(String text) {
+        Set<Integer> lemmasPositions = new HashSet<>();
+        Arrays.stream(text.split(" "))
+                .map(Integer::valueOf)
+                .forEach(lemmasPositions::add);
+        return lemmasPositions;
     }
 
     private List<Page> pageListCreator(List<Lemma> lemmasList) {
@@ -79,6 +88,10 @@ public class RequestHandler {
             pageList.forEach(page1 -> currentPages.forEach(page2 -> {
                 if (page2.getId() == page1.getId()) {
                     page1.setRelevance(page1.getRelevance() + page2.getRelevance());
+                    Set<Integer> lemmasPositions = new HashSet<>();
+                    lemmasPositions.addAll(page1.getLemmasPositions());
+                    lemmasPositions.addAll(page2.getLemmasPositions());
+                    page1.setLemmasPositions(lemmasPositions);
                     finalPageList.add(page1);
                 }
             }));
@@ -95,7 +108,7 @@ public class RequestHandler {
         responceObject.setUri(page.getPath());
         responceObject.setTitle(getPageTitle(page));
         responceObject.setRelevance(page.getRelevance());
-//        responceObject.setSnippet(getSnippet(page));
+        responceObject.setSnippet(getSnippet(page));
         return responceObject;
     }
 
@@ -103,40 +116,61 @@ public class RequestHandler {
         return Jsoup.parse(page.getContent()).getElementsByTag("title").text();
     }
 
-    private String getSnippet(Page page) throws IOException {
-        String snippet = "";
+    private String getSnippet(Page page) {
+        List<Integer> lemmaPositions = new ArrayList<>(page.getLemmasPositions());
+        Collections.sort(lemmaPositions);
+        System.out.println("positions: " + lemmaPositions);
         String text = Jsoup.parse(page.getContent()).getAllElements().text();
         String[] words = text.split("\\s+");
-        for (int i = 0; i < words.length; i++) {
-            if (wordValidator(words[i])) {
-//                if (i > 4) {
-//                    for (int j = 5; j > 0; j--) {
-//                        snippet = snippet.concat(words[i - j]).concat(" ");
-//                    }
-//                }
-//                else if(i > 0) {
-//                    for (int j = 0; j < i; j++) {
-//                        snippet = snippet.concat(words[j]).concat(" ");
-//                    }
-//                }
-                snippet = snippet.concat("<b>").concat(words[i]).concat("</b>");
-            }
-        }
-        return snippet;
+
+        return parseSnippet(getSnippetRange(lemmaPositions), words);
     }
 
-    private boolean wordValidator(String word) throws IOException {
-        word = new LemmaCollector().wordFormatterToLowerCase(word);
-        if (!new LemmaCollector().wordValidator(word)) {
-            return false;
+    private List<Integer> getSnippetRange(List<Integer> positions) {
+        if (positions.size() < 2 || positions.get(positions.size() - 1) - positions.get(0) < 30) {
+            return positions;
         }
-        for (String wordLemma : new Lemmatizer(word).call()) {
-            for (Lemma requestLemma : requestLemmas) {
-                if (requestLemma.getLemma().equals(wordLemma)) {
-                    return true;
+        List<Integer> newRangeList = new ArrayList<>();
+        int maxRange = 0;
+        int startPosition = 0;
+        int checkedRange = 0;
+        int checkedPosition = 0;
+        for (int i = checkedPosition; i < positions.size(); i++) {
+            if (positions.get(checkedPosition) + 30 - positions.get(i) > 0) {
+                checkedRange++;
+                if (i != positions.size() - 1) {
+                    continue;
                 }
             }
+            if (checkedRange > maxRange) {
+                startPosition = checkedPosition;
+                maxRange = checkedRange;
+            }
+            checkedRange = 0;
+            checkedPosition++;
+            i = checkedPosition;
         }
-        return false;
+        for (int i = startPosition; i < startPosition + maxRange; i++) {
+            newRangeList.add(positions.get(i));
+        }
+        return newRangeList;
+    }
+
+    private String parseSnippet(List<Integer> positions, String[] words) {
+        StringJoiner snippet = new StringJoiner(" ");
+        int start = 0;
+        int stop = words.length - positions.get(positions.size() - 1) < 5 ? words.length - 1 : positions.get(positions.size() - 1) + 5;
+        if (positions.get(0) > 3) {
+            start = positions.get(0) - 4;
+        }
+        for (int i = start; i < stop; i++) {
+            if (positions.contains(i)) {
+                snippet.add("<b>" + words[i] + "</b>");
+            }
+            else {
+                snippet.add(words[i]);
+            }
+        }
+        return snippet.toString();
     }
 }

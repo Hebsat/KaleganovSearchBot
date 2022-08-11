@@ -3,6 +3,7 @@ package main.model;
 import javax.persistence.*;
 import javax.persistence.Index;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "pages", indexes = @Index(name = "path_index", columnList = "path"))
@@ -35,16 +36,20 @@ public class Page {
     @Transient
     private float relevance;
 
+    @Transient
+    private Set<Integer> lemmasPositions;
+
     public Page() {
     }
 
-    public Page(int id, String path, int code, String content, Site site, float relevance) {
+    public Page(int id, String path, int code, String content, Site site, float relevance, Set<Integer> lemmasPositions) {
         this.id = id;
         this.path = path;
         this.code = code;
         this.content = content;
         this.site = site;
         this.relevance = relevance;
+        this.lemmasPositions = lemmasPositions;
     }
 
     public int getId() {
@@ -101,6 +106,14 @@ public class Page {
 
     public void setLemmaList(List<Lemma> lemmaList) {
         this.lemmaList = lemmaList;
+    }
+
+    public Set<Integer> getLemmasPositions() {
+        return lemmasPositions;
+    }
+
+    public void setLemmasPositions(Set<Integer> lemmasPositions) {
+        this.lemmasPositions = lemmasPositions;
     }
 
     @Override

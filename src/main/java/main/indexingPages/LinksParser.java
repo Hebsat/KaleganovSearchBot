@@ -1,6 +1,7 @@
 package main.indexingPages;
 
 import main.lemmatization.LemmaCollector;
+import main.lemmatization.LemmaValues;
 import main.model.Field;
 import main.model.Index;
 import main.model.Page;
@@ -26,6 +27,7 @@ public class LinksParser extends RecursiveAction {
     private final String domainName;
     private final Page page;
     private final Map<String, Float> lemmasRank;
+    private final Map<String, String> lemmaPositionInText;
     private final ParseProperties properties;
     List<String> currentLinks;
 
@@ -35,6 +37,7 @@ public class LinksParser extends RecursiveAction {
         page = properties.getPage();
         domainName = properties.getPage().getSite().getUrl();
         lemmasRank = new HashMap<>();
+        lemmaPositionInText = new HashMap<>();
         currentLinks = new ArrayList<>();
     }
 
@@ -125,12 +128,30 @@ public class LinksParser extends RecursiveAction {
     }
 
     private void getLemmasFromString(Document text) {
+        int lastFieldsWordsCount = 0;
         for (Field field : properties.getFields()) {
             String fieldText = text.getElementsByTag(field.getSelector()).text();
-            new LemmaCollector().getLemmas(fieldText).forEach((l, c) -> {
-                Float count = lemmasRank.getOrDefault(l, 0f);
-                lemmasRank.put(l, count + c * field.getWeight());
-            });
+            int currentFieldLength = 0;
+            Map<String, LemmaValues> lemmas = new LemmaCollector().getLemmas(fieldText);
+            for (Map.Entry<String, LemmaValues> entry : lemmas.entrySet()) {
+                Float count = lemmasRank.getOrDefault(entry.getKey(), 0f);
+                lemmasRank.put(entry.getKey(), count + entry.getValue().getCount() * field.getWeight());
+                currentFieldLength = entry.getValue().getTextLength();
+                List<Integer> lemmaPositionInField = entry.getValue().getWordNumbers();
+                int finalLastFieldsWordsCount = lastFieldsWordsCount;
+                String findingLemmaPositions = lemmaPositionInText.getOrDefault(entry.getKey(), "");
+                StringJoiner positionsInFieldStr = new StringJoiner(" ");
+                if (!findingLemmaPositions.isEmpty()) {
+                    positionsInFieldStr.add(findingLemmaPositions);
+                }
+                lemmaPositionInField.stream().map(i -> i += finalLastFieldsWordsCount).forEach(i -> positionsInFieldStr.add(String.valueOf(i)));
+                lemmaPositionInText.put(entry.getKey(), positionsInFieldStr.toString());
+            }
+//            new LemmaCollector().getLemmas(fieldText).forEach((l, c) -> {
+//                Float count = lemmasRank.getOrDefault(l, 0f);
+//                lemmasRank.put(l, count + c * field.getWeight());
+//            });
+            lastFieldsWordsCount += currentFieldLength;
         }
     }
 
@@ -146,6 +167,7 @@ public class LinksParser extends RecursiveAction {
             index.setPage(repositories.getPageRepository().findByPath(page.getPath(), page.getSite().getId()));
             index.setLemma(repositories.getLemmaRepository().findByLemma(l, page.getSite().getId()));
             index.setRank(r);
+            index.setIndexesInText(lemmaPositionInText.get(l));
             indexList.add(index);
         });
         repositories.getIndexRepository().saveAll(indexList);

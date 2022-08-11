@@ -12,24 +12,25 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
-public class Lemmatizer implements Callable<List<String>> {
+public class Lemmatizer implements Callable<Word> {
 
-    String word;
+    Word word;
 
-    public Lemmatizer(String word) {
+    public Lemmatizer(Word word) {
         this.word = word;
     }
 
     @Override
-    public List<String> call() throws IOException {
+    public Word call() throws IOException {
         if (ParseData.isInterrupted() && !ParseData.isSearching()) {
-            return new ArrayList<>();
+            return new Word();
         }
         LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
-        return luceneMorphology.getMorphInfo(word).stream()
+        word.setLemmas(luceneMorphology.getMorphInfo(word.getWord()).stream()
                 .map(this::partsOfSpeechFilter)
                 .filter(Objects::nonNull)
-                .toList();
+                .toList());
+        return word;
     }
 
     private String partsOfSpeechFilter(String word) {

@@ -75,7 +75,7 @@ public class IndexingService {
 
     public void startIndexingAll() {
         prepareIndexing();
-        service = Executors.newFixedThreadPool(3);
+        service = Executors.newFixedThreadPool(searchBotProperties.getThreadNumber());
         for (SiteParams site : searchBotProperties.getLinks()) {
             startIndexingSite(site);
         }
@@ -91,7 +91,6 @@ public class IndexingService {
         ParseData.setInterrupted(false);
         if (service != null && !service.isShutdown()) {
             service.shutdown();
-
         }
         ParseData.clearFoundLinks();
     }
@@ -158,27 +157,5 @@ public class IndexingService {
                         isIndexing()),
                 detailedStatistics.toArray(new DetailedStatistics[0])
         );
-    }
-
-    public int getSitesCount() {
-        return (int) repositories.getSiteRepository().count();
-    }
-
-    public long getPagesCount() {
-        return repositories.getPageRepository().count();
-    }
-
-    public long getLemmasCount() {
-        return repositories.getLemmaRepository().count();
-    }
-
-    public List<Site> getAllSites() {
-        List<Site> sites = new ArrayList<>();
-        repositories.getSiteRepository().findAll().forEach(sites::add);
-        return sites;
-    }
-
-    public List<Site> getAllIndexedSites() {
-        return repositories.getSiteRepository().findByStatus(Status.INDEXED);
     }
 }

@@ -32,7 +32,8 @@ CREATE TABLE indexes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     page_id INT NOT NULL,
     lemma_id INT NOT NULL,
-    `rank` FLOAT NOT NULL
+    `rank` FLOAT NOT NULL,
+    indexes_in_text TEXT
 );
 
 CREATE TABLE sites (

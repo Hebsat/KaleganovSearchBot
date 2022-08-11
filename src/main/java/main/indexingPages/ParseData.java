@@ -7,7 +7,6 @@ import java.util.Set;
 public class ParseData {
 
     private static final Set<String> foundLinks = Collections.synchronizedSet(new HashSet<>());
-
     private static boolean isInterrupted;
     private static boolean isSearching = false;
 
