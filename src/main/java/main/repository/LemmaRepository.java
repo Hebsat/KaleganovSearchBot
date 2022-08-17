@@ -22,11 +22,6 @@ public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
     @Query(value = "INSERT INTO lemmas (lemma, site_id, frequency) VALUES (:lemma, :siteId, 1) ON DUPLICATE KEY UPDATE frequency = frequency + 1", nativeQuery = true)
     void addLemma(@Param("lemma") String lemma, @Param("siteId") int siteId);
 
-    @Modifying
-    @Transactional
-    @Query(value = "INSERT INTO lemmas (lemma, frequency) VALUES (:multiInsertQuery) ON DUPLICATE KEY UPDATE frequency = frequency + 1", nativeQuery = true)
-    void addAllLemmas(@Param("multiInsertQuery") String multiInsertQuery);
-
     @Query(value = "SELECT COUNT(*) FROM lemmas WHERE site_id = :id", nativeQuery = true)
     long findCountBySiteId(@Param("id") int id);
 

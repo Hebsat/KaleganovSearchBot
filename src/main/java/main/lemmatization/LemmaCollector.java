@@ -21,11 +21,6 @@ public class LemmaCollector {
                 .forEach(w -> {
                     FutureTask<Word> futureTask = new FutureTask<>(new Lemmatizer(w));
                     tasks.add(futureTask);
-//                    try {
-//                        words.addAll(getLemmasFromWord(w));
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
                 });
         tasks.forEach(t -> service.submit(t));
         tasks.forEach(t -> {
@@ -43,8 +38,6 @@ public class LemmaCollector {
                     values.setCount(values.getCount() + 1);
                     values.setWordNumbers(wordNumbers);
                     lemmasMap.put(l, values);
-//            int count = lemmasMap.getOrDefault(w, 0);
-//            lemmasMap.put(w, count + 1);
                 }));
         service.shutdown();
         return lemmasMap;
@@ -60,7 +53,6 @@ public class LemmaCollector {
             wordsList.add(word);
         }
         return wordsList;
-//        return Arrays.stream(text.split("\\s+")).toList();
     }
 
     public Word wordFormatterToLowerCase(Word word) {
@@ -72,19 +64,4 @@ public class LemmaCollector {
     public boolean wordValidator(Word word) {
         return word.getWord().matches("[а-яё]+");
     }
-
-//    private String partsOfSpeechFilter(String word) {
-//        String[] invalid = {"ЧАСТ", "СОЮЗ", "МЕЖД", "ПРЕДЛ"};
-//        String[] elements = word.split(" ");
-//        return Arrays.stream(invalid).noneMatch(p -> p.equals(elements[1])) ?
-//                elements[0].substring(0, elements[0].indexOf('|')) : null;
-//    }
-//
-//    private List<String> getLemmasFromWord(String word) throws IOException {
-//        LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
-//        return luceneMorphology.getMorphInfo(word).stream()
-//                .map(this::partsOfSpeechFilter)
-//                .filter(Objects::nonNull)
-//                .toList();
-//    }
 }

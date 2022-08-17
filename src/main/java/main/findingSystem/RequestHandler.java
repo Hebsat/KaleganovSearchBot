@@ -36,7 +36,7 @@ public class RequestHandler {
         requestLemmas.sort(Comparator.comparing(Lemma::getFrequency));
         pageListCreator(requestLemmas).forEach(page -> {
             try {
-                result.add(getResponceObject(page));
+                result.add(getResponseObject(page));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -103,13 +103,13 @@ public class RequestHandler {
         return pageList;
     }
 
-    private ResponseObject getResponceObject(Page page) throws IOException {
-        ResponseObject responceObject = new ResponseObject();
-        responceObject.setUri(page.getPath());
-        responceObject.setTitle(getPageTitle(page));
-        responceObject.setRelevance(page.getRelevance());
-        responceObject.setSnippet(getSnippet(page));
-        return responceObject;
+    private ResponseObject getResponseObject(Page page) throws IOException {
+        ResponseObject responseObject = new ResponseObject();
+        responseObject.setUri(page.getPath());
+        responseObject.setTitle(getPageTitle(page));
+        responseObject.setRelevance(page.getRelevance());
+        responseObject.setSnippet(getSnippet(page));
+        return responseObject;
     }
 
     private String getPageTitle(Page page) {
@@ -119,10 +119,8 @@ public class RequestHandler {
     private String getSnippet(Page page) {
         List<Integer> lemmaPositions = new ArrayList<>(page.getLemmasPositions());
         Collections.sort(lemmaPositions);
-        System.out.println("positions: " + lemmaPositions);
         String text = Jsoup.parse(page.getContent()).getAllElements().text();
         String[] words = text.split("\\s+");
-
         return parseSnippet(getSnippetRange(lemmaPositions), words);
     }
 
@@ -158,18 +156,11 @@ public class RequestHandler {
 
     private String parseSnippet(List<Integer> positions, String[] words) {
         StringJoiner snippet = new StringJoiner(" ");
-        int start = 0;
-        int stop = words.length - positions.get(positions.size() - 1) < 5 ? words.length - 1 : positions.get(positions.size() - 1) + 5;
-        if (positions.get(0) > 3) {
-            start = positions.get(0) - 4;
-        }
+        int start = positions.get(0) > 3 ? positions.get(0) - 4 : 0;
+        int stop = words.length - positions.get(positions.size() - 1) < 5 ?
+                words.length - 1 : positions.get(positions.size() - 1) + 5;
         for (int i = start; i < stop; i++) {
-            if (positions.contains(i)) {
-                snippet.add("<b>" + words[i] + "</b>");
-            }
-            else {
-                snippet.add(words[i]);
-            }
+            snippet.add(positions.contains(i) ? "<b>" + words[i] + "</b>" : words[i]);
         }
         return snippet.toString();
     }

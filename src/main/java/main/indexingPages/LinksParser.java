@@ -4,6 +4,7 @@ import main.lemmatization.LemmaCollector;
 import main.lemmatization.LemmaValues;
 import main.model.Field;
 import main.model.Index;
+import main.model.Lemma;
 import main.model.Page;
 import main.properties.ParseProperties;
 import main.repository.*;
@@ -147,10 +148,6 @@ public class LinksParser extends RecursiveAction {
                 lemmaPositionInField.stream().map(i -> i += finalLastFieldsWordsCount).forEach(i -> positionsInFieldStr.add(String.valueOf(i)));
                 lemmaPositionInText.put(entry.getKey(), positionsInFieldStr.toString());
             }
-//            new LemmaCollector().getLemmas(fieldText).forEach((l, c) -> {
-//                Float count = lemmasRank.getOrDefault(l, 0f);
-//                lemmasRank.put(l, count + c * field.getWeight());
-//            });
             lastFieldsWordsCount += currentFieldLength;
         }
     }
@@ -171,12 +168,6 @@ public class LinksParser extends RecursiveAction {
             indexList.add(index);
         });
         repositories.getIndexRepository().saveAll(indexList);
-//        List<String> lemmas = new ArrayList<>(lemmasRank.keySet());
-//        repositories.getLemmaRepository().addAllLemmas(lemmas, page.getSite().getId());
-//        StringBuilder query = new StringBuilder();
-//        lemmasRank.forEach((l, r) -> query.append(query.length() == 0 ? "" : "), ('").append(l).append("', '1'"));
-//        System.out.println(query);
-//        repositories.getLemmaRepository().addAllLemmas(query.substring(0, query.length() - 1));
     }
 
     private void insertPreparing() {
