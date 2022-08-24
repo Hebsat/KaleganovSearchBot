@@ -1,5 +1,6 @@
 package main.lemmatization;
 
+import lombok.AllArgsConstructor;
 import main.indexingPages.ParseData;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
@@ -12,18 +13,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
+@AllArgsConstructor
 public class Lemmatizer implements Callable<Word> {
 
-    Word word;
-
-    public Lemmatizer(Word word) {
-        this.word = word;
-    }
+    private final Word word;
 
     @Override
     public Word call() throws IOException {
         if (ParseData.isInterrupted() && !ParseData.isSearching()) {
-            return new Word();
+            word.setLemmas(new ArrayList<>());
+            return word;
         }
         LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
         word.setLemmas(luceneMorphology.getMorphInfo(word.getWord()).stream()

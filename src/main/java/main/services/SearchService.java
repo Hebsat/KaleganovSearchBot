@@ -4,7 +4,8 @@ import main.findingSystem.RequestHandler;
 import main.findingSystem.ResponseObject;
 import main.model.Site;
 import main.properties.SearchBotProperties;
-import main.repository.Repositories;
+import main.repository.LemmaRepository;
+import main.repository.SiteRepository;
 import main.response.ResponseSearchObject;
 import main.response.SearchData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +19,14 @@ import java.util.logging.Logger;
 public class SearchService {
 
     @Autowired
-    private Repositories repositories;
-
+    private LemmaRepository lemmaRepository;
+    @Autowired
+    private SiteRepository siteRepository;
     @Autowired
     private SearchBotProperties searchBotProperties;
 
     public ResponseSearchObject search(String query, Site site, int offset, int limit) {
-        RequestHandler requestHandler = new RequestHandler(repositories);
+        RequestHandler requestHandler = new RequestHandler(lemmaRepository);
         List<ResponseObject> foundPages = requestHandler.requestHandler(query, site);
         List<ResponseObject> resultFoundPages = getPagesInRange(foundPages, offset, limit);
         List<SearchData> searchDataList = new ArrayList<>();
@@ -40,7 +42,7 @@ public class SearchService {
     }
 
     public Site getSite(String url) {
-        return repositories.getSiteRepository().findIndexedSiteByUrl(url);
+        return siteRepository.findIndexedSiteByUrl(url);
     }
 
     public boolean queryValidation(String query) {

@@ -1,8 +1,13 @@
 package main.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "indexes")
 public class Index {
 
@@ -33,45 +38,5 @@ public class Index {
                 ", lemma=" + lemma +
                 ", rank=" + rank +
                 '}';
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Page getPage() {
-        return page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public Lemma getLemma() {
-        return lemma;
-    }
-
-    public void setLemma(Lemma lemma) {
-        this.lemma = lemma;
-    }
-
-    public float getRank() {
-        return rank;
-    }
-
-    public void setRank(float rank) {
-        this.rank = rank;
-    }
-
-    public String getIndexesInText() {
-        return indexesInText;
-    }
-
-    public void setIndexesInText(String indexesInText) {
-        this.indexesInText = indexesInText;
     }
 }

@@ -5,7 +5,7 @@ import main.lemmatization.LemmaCollector;
 import main.model.Lemma;
 import main.model.Page;
 import main.model.Site;
-import main.repository.Repositories;
+import main.repository.LemmaRepository;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +16,11 @@ import java.util.logging.Logger;
 @Component
 public class RequestHandler {
 
-    private final Repositories repositories;
+    private final LemmaRepository lemmaRepository;
     private final List<Lemma> requestLemmas;
 
-    public RequestHandler(Repositories repositories) {
-        this.repositories = repositories;
+    public RequestHandler(LemmaRepository lemmaRepository) {
+        this.lemmaRepository = lemmaRepository;
         requestLemmas = new ArrayList<>();
     }
 
@@ -29,7 +29,8 @@ public class RequestHandler {
         ParseData.setSearching(true);
         new LemmaCollector().getLemmas(request).keySet().forEach(l -> requestLemmas.add(getLemma(l, site)));
         ParseData.setSearching(false);
-//        requestLemmas.removeIf(Objects::isNull);
+        //Строка ниже позволяет осуществлять поиск при отсутствии некоторых лемм в БД
+        requestLemmas.removeIf(Objects::isNull);
         if (requestLemmas.contains(null) | requestLemmas.isEmpty()) {
             return new ArrayList<>();
         }
@@ -47,7 +48,7 @@ public class RequestHandler {
     }
 
     private Lemma getLemma(String lemma, Site site) {
-        return repositories.getLemmaRepository().findByLemma(lemma, site.getId());
+        return lemmaRepository.findByLemma(lemma, site.getId());
     }
 
     private List<Page> getPages(Lemma lemma) {

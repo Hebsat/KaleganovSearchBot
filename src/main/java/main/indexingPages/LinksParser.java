@@ -4,7 +4,6 @@ import main.lemmatization.LemmaCollector;
 import main.lemmatization.LemmaValues;
 import main.model.Field;
 import main.model.Index;
-import main.model.Lemma;
 import main.model.Page;
 import main.properties.ParseProperties;
 import main.repository.*;
@@ -13,7 +12,6 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
@@ -23,17 +21,26 @@ import java.util.logging.Logger;
 
 public class LinksParser extends RecursiveAction {
 
-    private final Repositories repositories;
-
+    private final SiteRepository siteRepository;
+    private final PageRepository pageRepository;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
+    private final ParseProperties properties;
     private final String domainName;
     private final Page page;
     private final Map<String, Float> lemmasRank;
     private final Map<String, String> lemmaPositionInText;
-    private final ParseProperties properties;
-    List<String> currentLinks;
+    private List<String> currentLinks;
 
-    public LinksParser(Repositories repositories, ParseProperties properties) {
-        this.repositories = repositories;
+    public LinksParser(SiteRepository siteRepository,
+                       PageRepository pageRepository,
+                       LemmaRepository lemmaRepository,
+                       IndexRepository indexRepository,
+                       ParseProperties properties) {
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
         this.properties = properties;
         page = properties.getPage();
         domainName = properties.getPage().getSite().getUrl();
@@ -54,7 +61,8 @@ public class LinksParser extends RecursiveAction {
             Logger.getLogger(LinksParser.class.getName()).info("Прерван анализ страницы " + page.getPath());
         }
         Logger.getLogger(LinksParser.class.getName())
-                .info("ссылок найдено: " + ParseData.getFoundLinks().size() + " / поток №: " + Thread.currentThread().getId() + " / просмотр: " + page.getPath() + " = " + page.getSite().getId());
+                .info("ссылок найдено: " + ParseData.getFoundLinks().size() + " / поток №: " +
+                        Thread.currentThread().getId() + " / просмотр: " + page.getPath() + " = " + page.getSite().getId());
         List<LinksParser> taskList = new ArrayList<>();
         ParseData.addFoundLink(page.getPath());
         try {
@@ -64,7 +72,7 @@ public class LinksParser extends RecursiveAction {
                 newPage.setSite(page.getSite());
                 newPage.setPath(link);
                 properties.setPage(newPage);
-                LinksParser task = new LinksParser(repositories, properties);
+                LinksParser task = new LinksParser(siteRepository, pageRepository, lemmaRepository, indexRepository, properties);
                 task.fork();
                 taskList.add(task);
             });
@@ -125,7 +133,7 @@ public class LinksParser extends RecursiveAction {
     }
 
     private boolean linkValidation(String link) {
-        return !link.matches("(\\S+\\.(?!html)\\w{2,5}(/?\\?\\S+)?$)|(\\S+#\\S+)");
+        return !link.matches("([\\S\\s]+\\.(?!html)\\w{2,5}(/?\\?\\S+)?$)|(\\S+#\\S+)");
     }
 
     private void getLemmasFromString(Document text) {
@@ -155,28 +163,26 @@ public class LinksParser extends RecursiveAction {
     private void insertDataToDB() {
         page.setPath(urlFormatterForDB(page.getPath()));
         insertPreparing();
-        repositories.getPageRepository().save(page);
-        repositories.getSiteRepository().updateIndexingDate(page.getSite().getId());
-        lemmasRank.keySet().forEach(l ->repositories.getLemmaRepository().addLemma(l, page.getSite().getId()));
+        pageRepository.save(page);
+        siteRepository.updateIndexingDate(page.getSite().getId());
+        lemmasRank.keySet().forEach(l -> lemmaRepository.addLemma(l, page.getSite().getId()));
         List<Index> indexList = new ArrayList<>();
         lemmasRank.forEach((l, r) -> {
             Index index = new Index();
-            index.setPage(repositories.getPageRepository().findByPath(page.getPath(), page.getSite().getId()));
-            index.setLemma(repositories.getLemmaRepository().findByLemma(l, page.getSite().getId()));
+            index.setPage(pageRepository.findByPath(page.getPath(), page.getSite().getId()));
+            index.setLemma(lemmaRepository.findByLemma(l, page.getSite().getId()));
             index.setRank(r);
             index.setIndexesInText(lemmaPositionInText.get(l));
             indexList.add(index);
         });
-        repositories.getIndexRepository().saveAll(indexList);
+        indexRepository.saveAll(indexList);
     }
 
     private void insertPreparing() {
-        Page existingPage = repositories.getPageRepository().findByPath(page.getPath(), page.getSite().getId());
+        Page existingPage = pageRepository.findByPath(page.getPath(), page.getSite().getId());
         if (existingPage != null) {
-            existingPage.getLemmaList().forEach(lemma -> {
-                repositories.getLemmaRepository().decreaseFrequency(lemma);
-            });
-            repositories.getPageRepository().deleteById(existingPage.getId());
+            existingPage.getLemmaList().forEach(lemmaRepository::decreaseFrequency);
+            pageRepository.deleteById(existingPage.getId());
         }
 
     }

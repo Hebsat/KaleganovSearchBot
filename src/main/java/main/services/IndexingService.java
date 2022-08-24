@@ -10,7 +10,7 @@ import main.model.Status;
 import main.properties.ParseProperties;
 import main.properties.SearchBotProperties;
 import main.properties.SiteParams;
-import main.repository.Repositories;
+import main.repository.*;
 import main.response.DetailedStatistics;
 import main.response.ResponseStatistics;
 import main.response.TotalStatistics;
@@ -27,33 +27,40 @@ import java.util.regex.Pattern;
 @Service
 public class IndexingService {
 
-    ExecutorService service;
+    private ExecutorService service;
 
     @Autowired
-    private Repositories repositories;
-
+    private SiteRepository siteRepository;
+    @Autowired
+    private PageRepository pageRepository;
+    @Autowired
+    private LemmaRepository lemmaRepository;
+    @Autowired
+    private IndexRepository indexRepository;
+    @Autowired
+    private FieldRepository fieldRepository;
     @Autowired
     private SearchBotProperties searchBotProperties;
 
     public void startIndexingSite(SiteParams link) {
         String url = getDomainNameFromLink(link.getUrl());
         String name = link.getName();
-        repositories.getSiteRepository().startIndexingSite(url, name);
-        Site site = repositories.getSiteRepository().findIndexingSiteByUrl(url);
+        siteRepository.startIndexingSite(url, name);
+        Site site = siteRepository.findIndexingSiteByUrl(url);
         try {
             ParseProperties properties = new ParseProperties();
             properties.setUserAgent(searchBotProperties.getUserAgent());
-            properties.setFields(new ArrayList<>((Collection<Field>) repositories.getFieldRepository().findAll()));
+            properties.setFields(new ArrayList<>((Collection<Field>) fieldRepository.findAll()));
             properties.setForkJoinThreads(Runtime.getRuntime().availableProcessors() / searchBotProperties.getThreadNumber());
             Page page = new Page();
             page.setSite(site);
             page.setPath(site.getUrl());
             properties.setPage(page);
 
-            service.submit(new RunnableParserTask(repositories, properties));
+            service.submit(new RunnableParserTask(siteRepository, pageRepository, lemmaRepository, indexRepository, properties));
         }
         catch (Exception e) {
-            repositories.getSiteRepository().failedIndexingSite(site.getId(), "Ошибка запуска индексации");
+            siteRepository.failedIndexingSite(site.getId(), "Ошибка запуска индексации");
             e.printStackTrace();
         }
     }
@@ -61,15 +68,15 @@ public class IndexingService {
     public void startIndexingSinglePage(String url) throws IOException {
         Logger.getLogger(IndexingService.class.getName()).info("Индексация отдельной страницы: " + url);
         String domainName = getDomainNameFromLink(url);
-        Site site = repositories.getSiteRepository().findIndexedSiteByUrl(domainName);
+        Site site = siteRepository.findIndexedSiteByUrl(domainName);
         ParseProperties properties = new ParseProperties();
         properties.setUserAgent(searchBotProperties.getUserAgent());
-        properties.setFields(new ArrayList<>((Collection<Field>) repositories.getFieldRepository().findAll()));
+        properties.setFields(new ArrayList<>((Collection<Field>) fieldRepository.findAll()));
         Page page = new Page();
         page.setSite(site);
         page.setPath(url);
         properties.setPage(page);
-        new LinksParser(repositories, properties).parsePage();
+        new LinksParser(siteRepository, pageRepository, lemmaRepository, indexRepository, properties).parsePage();
         Logger.getLogger(IndexingService.class.getName()).info("Индексация " + url + " завершена");
     }
 
@@ -97,7 +104,7 @@ public class IndexingService {
 
     public boolean isIndexing() {
         List<Site> sites = new ArrayList<>();
-        repositories.getSiteRepository().findAll().forEach(sites::add);
+        siteRepository.findAll().forEach(sites::add);
         return sites.stream().anyMatch(site -> site.getStatus() == Status.INDEXING);
     }
 
@@ -139,21 +146,21 @@ public class IndexingService {
     public ResponseStatistics getStatistics() {
         List<DetailedStatistics> detailedStatistics = new ArrayList<>();
         List<Site> sites = new ArrayList<>();
-        repositories.getSiteRepository().findAll().forEach(sites::add);
+        siteRepository.findAll().forEach(sites::add);
         sites.forEach(site -> detailedStatistics.add(new DetailedStatistics(
                 site.getUrl(),
                 site.getName(),
                 site.getStatus(),
                 site.getStatusTime().getTime(),
                 site.getLastError() == null ? "Ошибки отсутствуют" : site.getLastError(),
-                repositories.getPageRepository().findCountBySiteId(site.getId()),
-                repositories.getLemmaRepository().findCountBySiteId(site.getId())
+                pageRepository.findCountBySiteId(site.getId()),
+                lemmaRepository.findCountBySiteId(site.getId())
         )));
         return new ResponseStatistics(
                 new TotalStatistics(
-                        repositories.getSiteRepository().count(),
-                        repositories.getPageRepository().count(),
-                        repositories.getLemmaRepository().count(),
+                        siteRepository.count(),
+                        pageRepository.count(),
+                        lemmaRepository.count(),
                         isIndexing()),
                 detailedStatistics.toArray(new DetailedStatistics[0])
         );

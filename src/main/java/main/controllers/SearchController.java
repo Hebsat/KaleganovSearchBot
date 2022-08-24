@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.logging.Logger;
 
 @RestController
-@RequestMapping("/admin/")
+@RequestMapping("/admin")
 public class SearchController {
 
     @Autowired
