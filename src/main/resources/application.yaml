@@ -1,0 +1,39 @@
+spring:
+  #DB parameters
+  datasource:
+    url: jdbc:mysql://localhost:3306/search_engine
+    username: root
+    password: 12345
+  #sql.init.mode: always
+  #JPA
+  jpa:
+    hibernate.ddl-auto: none
+    show-sql: false
+
+  output.ansi.enabled: ALWAYS
+
+#logging settings
+logging:
+  level:
+    root: info
+
+#basic settings
+#server:
+#  servlet:
+#    context-path: /admin
+
+searchbot:
+  #Threads number coefficient for forkjoin
+  threadNumber: 3
+  #User agent for Jsoup.connect
+  userAgent: KaleganovSearchBot-1.0
+  #List of sites
+  links:
+  - url: https://nikoartgallery.com
+    name: Галерея Исскуств Нико
+  - url: http://radiomv.ru/
+    name: Радио Милицейская Волна
+  - url: https://www.svetlovka.ru
+    name: Библиотека Светловка
+  - url: https://www.lutherancathedral.ru
+    name: Собор святых Петра и Павла
