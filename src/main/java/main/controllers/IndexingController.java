@@ -1,5 +1,6 @@
 package main.controllers;
 
+import main.exceptions.ErrorMessages;
 import main.exceptions.IndexingException;
 import main.response.FinalResponseStatistics;
 import main.services.IndexingService;
@@ -22,7 +23,7 @@ public class IndexingController {
     @GetMapping("/startIndexing")
     public ResponseEntity<?> startIndexing() throws IndexingException {
         if (indexingService.isIndexing()) {
-            throw new IndexingException("Индексация уже запущена");
+            throw new IndexingException(ErrorMessages.INDEXING_STARTED_YET);
         }
         indexingService.startIndexingAll();
         Map<String, Boolean> response = new HashMap<>();
@@ -38,13 +39,13 @@ public class IndexingController {
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
-        throw new IndexingException("Индексация не запущена");
+        throw new IndexingException(ErrorMessages.INDEXING_NOT_STARTED);
     }
 
     @PostMapping("/indexPage")
     public ResponseEntity<?> indexSingleSite(@RequestParam String url) throws IndexingException {
         if (indexingService.isIndexing()) {
-            throw new IndexingException("Индексация уже запущена");
+            throw new IndexingException(ErrorMessages.INDEXING_STARTED_YET);
         }
         if (indexingService.indexSiteValidation(url)) {
             indexingService.startIndexingSingleSite(url);
@@ -52,13 +53,13 @@ public class IndexingController {
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
-        throw new IndexingException("Данный сайт находится вне списка сайтов, указанных в конфигурационном файле: " + url);
+        throw new IndexingException(ErrorMessages.SITE_OUT_OF_RANGE + url);
     }
 
     @PostMapping("/indexPage1")
     public ResponseEntity<?> indexSinglePage(@RequestParam String url) throws IOException, IndexingException {
         if (indexingService.isIndexing()) {
-            throw new IndexingException("Индексация уже запущена");
+            throw new IndexingException(ErrorMessages.INDEXING_STARTED_YET);
         }
         if (indexingService.indexPageValidation(url)) {
             indexingService.startIndexingSinglePage(url);
@@ -66,7 +67,7 @@ public class IndexingController {
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
-        throw new IndexingException("Данная страница находится вне списка сайтов, указанных в конфигурационном файле: " + url);
+        throw new IndexingException(ErrorMessages.PAGE_OUT_OF_RANGE + url);
     }
 
     @GetMapping("/statistics")

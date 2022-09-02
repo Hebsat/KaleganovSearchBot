@@ -1,5 +1,6 @@
 package main.controllers;
 
+import main.exceptions.ErrorMessages;
 import main.exceptions.SearchException;
 import main.model.Site;
 import main.services.SearchService;
@@ -26,17 +27,17 @@ public class SearchController {
                                       @RequestParam(required = false) int offset,
                                       @RequestParam(required = false, defaultValue = "20") int limit) throws SearchException {
         if (query.isBlank()) {
-            throw new SearchException("Задан пустой поисковый запрос");
+            throw new SearchException(ErrorMessages.EMPTY_QUERY);
         }
         if (!searchService.queryValidation(query)){
-            throw new SearchException("Задан некорректный поисковый запрос: " + query);
+            throw new SearchException(ErrorMessages.INCORRECT_QUERY + query);
         }
         if (site.isBlank()) {
-            throw new SearchException("Не указан сайт для поиска");
+            throw new SearchException(ErrorMessages.EMPTY_SITE);
         }
         Site currentSite = searchService.getSite(site);
         if (currentSite == null) {
-            throw new SearchException("Указанный сайт не проиндексирован");
+            throw new SearchException(ErrorMessages.UNINDEXED_SITE);
         }
         Logger.getLogger(SearchController.class.getName())
                 .info("Запрос: " + query + " / на сайте " + currentSite.getUrl() +
