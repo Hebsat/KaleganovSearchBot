@@ -1,7 +1,7 @@
 package main.controllers;
 
+import main.exceptions.SearchException;
 import main.model.Site;
-import main.response.ResponseErrorObject;
 import main.services.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,23 +24,19 @@ public class SearchController {
     public ResponseEntity<?> searchPages(@RequestParam String query,
                                       @RequestParam String site,
                                       @RequestParam(required = false) int offset,
-                                      @RequestParam(required = false, defaultValue = "20") int limit) {
+                                      @RequestParam(required = false, defaultValue = "20") int limit) throws SearchException {
         if (query.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Задан пустой поисковый запрос"));
+            throw new SearchException("Задан пустой поисковый запрос");
         }
         if (!searchService.queryValidation(query)){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Задан некорректный поисковый запрос: " + query));
+            throw new SearchException("Задан некорректный поисковый запрос: " + query);
         }
         if (site.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Не указан сайт для поиска"));
+            throw new SearchException("Не указан сайт для поиска");
         }
         Site currentSite = searchService.getSite(site);
         if (currentSite == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Указанный сайт не проиндексирован"));
+            throw new SearchException("Указанный сайт не проиндексирован");
         }
         Logger.getLogger(SearchController.class.getName())
                 .info("Запрос: " + query + " / на сайте " + currentSite.getUrl() +

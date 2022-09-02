@@ -1,7 +1,7 @@
 package main.controllers;
 
+import main.exceptions.IndexingException;
 import main.response.FinalResponseStatistics;
-import main.response.ResponseErrorObject;
 import main.services.IndexingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,10 +20,9 @@ public class IndexingController {
     private IndexingService indexingService;
 
     @GetMapping("/startIndexing")
-    public ResponseEntity<?> startIndexing() {
+    public ResponseEntity<?> startIndexing() throws IndexingException {
         if (indexingService.isIndexing()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Индексация уже запущена"));
+            throw new IndexingException("Индексация уже запущена");
         }
         indexingService.startIndexingAll();
         Map<String, Boolean> response = new HashMap<>();
@@ -32,22 +31,20 @@ public class IndexingController {
     }
 
     @GetMapping("/stopIndexing")
-    public ResponseEntity<?> stopIndexing() {
+    public ResponseEntity<?> stopIndexing() throws IndexingException {
         if (indexingService.isIndexing()) {
             indexingService.stopIndexing();
             Map<String, Boolean> result = new HashMap<>();
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ResponseErrorObject(false, "Индексация не запущена"));
+        throw new IndexingException("Индексация не запущена");
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<?> indexSingleSite(@RequestParam String url) {
+    public ResponseEntity<?> indexSingleSite(@RequestParam String url) throws IndexingException {
         if (indexingService.isIndexing()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Индексация уже запущена"));
+            throw new IndexingException("Индексация уже запущена");
         }
         if (indexingService.indexSiteValidation(url)) {
             indexingService.startIndexingSingleSite(url);
@@ -55,16 +52,13 @@ public class IndexingController {
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ResponseErrorObject(false,
-                        "Данный сайт находится вне списка сайтов, указанных в конфигурационном файле: " + url));
+        throw new IndexingException("Данный сайт находится вне списка сайтов, указанных в конфигурационном файле: " + url);
     }
 
     @PostMapping("/indexPage1")
-    public ResponseEntity<?> indexSinglePage(@RequestParam String url) throws IOException {
+    public ResponseEntity<?> indexSinglePage(@RequestParam String url) throws IOException, IndexingException {
         if (indexingService.isIndexing()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseErrorObject(false, "Индексация уже запущена"));
+            throw new IndexingException("Индексация уже запущена");
         }
         if (indexingService.indexPageValidation(url)) {
             indexingService.startIndexingSinglePage(url);
@@ -72,9 +66,7 @@ public class IndexingController {
             result.put("result", true);
             return ResponseEntity.status(HttpStatus.OK).body(result);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ResponseErrorObject(false,
-                        "Данная страница находится вне списка сайтов, указанных в конфигурационном файле: " + url));
+        throw new IndexingException("Данная страница находится вне списка сайтов, указанных в конфигурационном файле: " + url);
     }
 
     @GetMapping("/statistics")
