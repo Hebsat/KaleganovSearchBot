@@ -74,7 +74,7 @@ class IndexingControllerTest {
     void indexSingleSite() throws Exception {
         when(indexingService.isIndexing()).thenReturn(false);
         when(indexingService.indexSiteValidation(any())).thenReturn(true);
-        mockMvc.perform(post("/admin/indexPage").param("url",  ""))
+        mockMvc.perform(post("/admin/indexSite").param("url",  ""))
                 .andDo(print())
                 .andExpect(jsonPath("$.result").value(true))
                 .andExpect(status().isOk());
@@ -83,7 +83,7 @@ class IndexingControllerTest {
     @Test
     void failedIndexSingleSite() throws Exception {
         when(indexingService.isIndexing()).thenReturn(true);
-        mockMvc.perform(post("/admin/indexPage").param("url",  ""))
+        mockMvc.perform(post("/admin/indexSite").param("url",  ""))
                 .andDo(print())
                 .andExpect(jsonPath("$.result").value(false))
                 .andExpect(jsonPath("$.error").value(ErrorMessages.INDEXING_STARTED_YET))
@@ -94,7 +94,7 @@ class IndexingControllerTest {
     void failedIndexSingleSiteOutOfRange() throws Exception {
         when(indexingService.isIndexing()).thenReturn(false);
         when(indexingService.indexSiteValidation(any())).thenReturn(false);
-        mockMvc.perform(post("/admin/indexPage").param("url",  ""))
+        mockMvc.perform(post("/admin/indexSite").param("url",  ""))
                 .andDo(print())
                 .andExpect(jsonPath("$.result").value(false))
                 .andExpect(jsonPath("$.error").value(ErrorMessages.SITE_OUT_OF_RANGE))
@@ -105,7 +105,7 @@ class IndexingControllerTest {
     void indexSinglePage() throws Exception {
         when(indexingService.isIndexing()).thenReturn(false);
         when(indexingService.indexPageValidation(any())).thenReturn(true);
-        mockMvc.perform(post("/admin/indexPage1").param("url",  ""))
+        mockMvc.perform(post("/admin/indexPage").param("url",  ""))
                 .andDo(print())
                 .andExpect(jsonPath("$.result").value(true))
                 .andExpect(status().isOk());
@@ -114,7 +114,7 @@ class IndexingControllerTest {
     @Test
     void failedIndexSinglePage() throws Exception {
         when(indexingService.isIndexing()).thenReturn(true);
-        mockMvc.perform(post("/admin/indexPage1").param("url",  ""))
+        mockMvc.perform(post("/admin/indexPage").param("url",  ""))
                 .andDo(print())
                 .andExpect(jsonPath("$.result").value(false))
                 .andExpect(jsonPath("$.error").value(ErrorMessages.INDEXING_STARTED_YET))
@@ -125,7 +125,7 @@ class IndexingControllerTest {
     void failedIndexSinglePageOutOfRange() throws Exception {
         when(indexingService.isIndexing()).thenReturn(false);
         when(indexingService.indexPageValidation(any())).thenReturn(false);
-        mockMvc.perform(post("/admin/indexPage1").param("url",  ""))
+        mockMvc.perform(post("/admin/indexPage").param("url",  ""))
                 .andDo(print())
                 .andExpect(jsonPath("$.result").value(false))
                 .andExpect(jsonPath("$.error").value(ErrorMessages.PAGE_OUT_OF_RANGE))

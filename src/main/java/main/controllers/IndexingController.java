@@ -42,7 +42,7 @@ public class IndexingController {
         throw new IndexingException(ErrorMessages.INDEXING_NOT_STARTED);
     }
 
-    @PostMapping("/indexPage")
+    @PostMapping("/indexSite")
     public ResponseEntity<?> indexSingleSite(@RequestParam String url) throws IndexingException {
         if (indexingService.isIndexing()) {
             throw new IndexingException(ErrorMessages.INDEXING_STARTED_YET);
@@ -56,7 +56,7 @@ public class IndexingController {
         throw new IndexingException(ErrorMessages.SITE_OUT_OF_RANGE + url);
     }
 
-    @PostMapping("/indexPage1")
+    @PostMapping("/indexPage")
     public ResponseEntity<?> indexSinglePage(@RequestParam String url) throws IOException, IndexingException {
         if (indexingService.isIndexing()) {
             throw new IndexingException(ErrorMessages.INDEXING_STARTED_YET);

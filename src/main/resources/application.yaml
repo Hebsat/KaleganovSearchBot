@@ -17,11 +17,6 @@ logging:
   level:
     root: info
 
-#basic settings
-#server:
-#  servlet:
-#    context-path: /admin
-
 searchbot:
   #Threads number coefficient for forkjoin
   threadNumber: 3
