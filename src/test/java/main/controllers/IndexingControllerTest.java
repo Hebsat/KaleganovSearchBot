@@ -1,12 +1,8 @@
 package main.controllers;
 
 import main.exceptions.ErrorMessages;
-import main.response.DetailedStatistics;
 import main.response.ResponseStatistics;
-import main.response.TotalStatistics;
 import main.services.IndexingService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

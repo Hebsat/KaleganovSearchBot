@@ -1,7 +1,7 @@
-package main.indexingPages;
+package main.services.indexingPages;
 
-import main.lemmatization.LemmaCollector;
-import main.lemmatization.LemmaValues;
+import main.services.lemmatization.LemmaCollector;
+import main.model.LemmaValues;
 import main.model.Field;
 import main.model.Index;
 import main.model.Page;
@@ -133,7 +133,7 @@ public class LinksParser extends RecursiveAction {
     }
 
     private boolean linkValidation(String link) {
-        return !link.matches("([\\S\\s]+\\.(?!html)\\w{2,5}(/?\\?\\S+)?$)|(\\S+#\\S+)");
+        return !link.matches("(.+\\.(?!html)\\w{2,5}(/?\\?\\S+)?$)|(\\S+#\\S+)");
     }
 
     private void getLemmasFromString(Document text) {

@@ -1,8 +1,8 @@
 package main.services;
 
-import main.indexingPages.LinksParser;
-import main.indexingPages.ParseData;
-import main.indexingPages.RunnableParserTask;
+import main.services.indexingPages.LinksParser;
+import main.services.indexingPages.ParseData;
+import main.services.indexingPages.RunnableParserTask;
 import main.model.Field;
 import main.model.Page;
 import main.model.Site;

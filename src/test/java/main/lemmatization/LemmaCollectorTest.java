@@ -1,13 +1,13 @@
 package main.lemmatization;
 
+import main.services.lemmatization.LemmaCollector;
+import main.model.LemmaValues;
+import main.model.Word;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,4 +1,4 @@
-package main.findingSystem;
+package main.response;
 
 import lombok.Getter;
 import lombok.Setter;

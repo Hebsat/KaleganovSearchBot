@@ -1,4 +1,7 @@
-package main.lemmatization;
+package main.services.lemmatization;
+
+import main.model.LemmaValues;
+import main.model.Word;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;

@@ -1,7 +1,7 @@
 package main.services;
 
-import main.findingSystem.RequestHandler;
-import main.findingSystem.ResponseObject;
+import main.services.findingSystem.RequestHandler;
+import main.response.ResponseObject;
 import main.model.Site;
 import main.properties.SearchBotProperties;
 import main.repository.LemmaRepository;

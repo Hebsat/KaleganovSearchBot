@@ -1,4 +1,4 @@
-package main.lemmatization;
+package main.model;
 
 import lombok.Getter;
 import lombok.Setter;

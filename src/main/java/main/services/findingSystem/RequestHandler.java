@@ -1,7 +1,8 @@
-package main.findingSystem;
+package main.services.findingSystem;
 
-import main.indexingPages.ParseData;
-import main.lemmatization.LemmaCollector;
+import main.response.ResponseObject;
+import main.services.indexingPages.ParseData;
+import main.services.lemmatization.LemmaCollector;
 import main.model.Lemma;
 import main.model.Page;
 import main.model.Site;

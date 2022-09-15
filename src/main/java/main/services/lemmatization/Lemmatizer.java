@@ -1,7 +1,8 @@
-package main.lemmatization;
+package main.services.lemmatization;
 
 import lombok.AllArgsConstructor;
-import main.indexingPages.ParseData;
+import main.model.Word;
+import main.services.indexingPages.ParseData;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 

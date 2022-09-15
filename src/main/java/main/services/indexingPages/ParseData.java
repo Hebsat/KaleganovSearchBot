@@ -1,4 +1,4 @@
-package main.indexingPages;
+package main.services.indexingPages;
 
 import java.util.Collections;
 import java.util.HashSet;

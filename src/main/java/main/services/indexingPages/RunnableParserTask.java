@@ -1,4 +1,4 @@
-package main.indexingPages;
+package main.services.indexingPages;
 
 import lombok.AllArgsConstructor;
 import main.model.Site;
